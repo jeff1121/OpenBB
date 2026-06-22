@@ -45,9 +45,7 @@ class CategoryIndex:
     `ctx.enable_components()` / `ctx.disable_components()`。
     """
 
-    _by_category: dict[str, dict[str, set[str]]] = field(
-        default_factory=lambda: defaultdict(lambda: defaultdict(set))
-    )
+    _by_category: dict[str, dict[str, set[str]]] = field(default_factory=lambda: defaultdict(lambda: defaultdict(set)))
     _all_names: set[str] = field(default_factory=set)
     _descriptions: dict[str, str] = field(default_factory=dict)
 
@@ -82,11 +80,7 @@ class CategoryIndex:
 
     def get_category_names(self, category: str) -> set[str]:
         """回傳屬於 *category* 的所有工具名稱（包含所有子分類）。"""
-        return {
-            name
-            for subcat_names in self._by_category.get(category, {}).values()
-            for name in subcat_names
-        }
+        return {name for subcat_names in self._by_category.get(category, {}).values() for name in subcat_names}
 
     def get_subcategory_names(self, category: str, subcategory: str) -> set[str]:
         """回傳特定子分類中的工具名稱。"""

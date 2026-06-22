@@ -96,49 +96,49 @@ docker run --rm \
 
 ```sh
 --help
-    Show this help message and exit.
+    顯示此說明並結束。
 
 --app <app_path>
-    The path to the FastAPI app instance. This can be in the format
-    'module.path:app_instance' or a file path 'path/to/app.py'.
-    If not provided, the server will run with the default built-in app.
+    FastAPI app 實例的路徑。
+    可使用 'module.path:app_instance' 或 'path/to/app.py' 格式。
+    若未提供，伺服器會使用內建預設 app 啟動。
 
 --name <name>
-    The name of the FastAPI app instance or factory function in the app file.
-    Defaults to 'app'.
+    app 檔案中 FastAPI 實例或 factory function 的名稱。
+    預設為 'app'。
 
 --factory
-    If set, the app is treated as a factory function that will be called
-    to create the FastAPI app instance.
+    若設定此旗標，會將 app 視為 factory function，
+    並呼叫它來建立 FastAPI app 實例。
 
 --host <host>
-    The host to bind the server to. Defaults to '127.0.0.1'.
-    This is a uvicorn argument.
+    伺服器要綁定的 host。預設為 '127.0.0.1'。
+    這是 uvicorn 參數。
 
 --port <port>
-    The port to bind the server to. Defaults to 8001.
-    This is a uvicorn argument.
+    伺服器要綁定的 port。預設為 8001。
+    這是 uvicorn 參數。
 
 --transport <transport>
-    The transport mechanism to use for the MCP server.
-    Defaults to 'streamable-http'.
+    MCP 伺服器使用的傳輸機制。
+    預設為 'streamable-http'。
 
 --allowed-categories <categories>
-    A comma-separated list of tool categories to allow.
-    If not provided, all categories are allowed.
+    允許使用的工具分類，使用逗號分隔。
+    若未提供，則允許所有分類。
 
 --default-categories <categories>
-    A comma-separated list of tool categories to be enabled by default.
-    Defaults to 'all'.
+    預設啟用的工具分類，使用逗號分隔。
+    預設為 'all'。
 
 --tool-discovery
-    If set, tool discovery will be enabled.
+    若設定此旗標，會啟用工具探索。
 
 --system-prompt <path>
-    Path to a TXT file with the system prompt.
+    系統 prompt 的 TXT 檔案路徑。
 
 --server-prompts <path>
-    Path to a JSON file with a list of server prompts.
+    包含 server prompts 清單的 JSON 檔案路徑。
 ```
 
 #### 其他所有參數都會傳給 `uvicorn.run`。
@@ -148,9 +148,9 @@ docker run --rm \
 
 伺服器支援多種設定方式，優先順序如下：
 
-1. **Command Line Arguments**：最高優先權，會覆蓋其他所有來源。
-2. **Environment Variables**：每個設定都能透過環境變數控制，並覆蓋設定檔內容。
-3. **Configuration File**：位於 `~/.openbb_platform/mcp_settings.json` 的 JSON 檔提供基礎設定。
+1. **命令列參數**：最高優先權，會覆蓋其他所有來源。
+2. **環境變數**：每個設定都能透過環境變數控制，並覆蓋設定檔內容。
+3. **設定檔**：位於 `~/.openbb_platform/mcp_settings.json` 的 JSON 檔提供基礎設定。
    - 若設定檔不存在，系統會以預設值自動建立一份。
 
 > **注意：** 某些資料提供者需要你在 `~/.openbb_platform/user_settings.json` 中設定 API key。
@@ -280,7 +280,7 @@ OPENBB_MCP_UVICORN_CONFIG='{"host": "0.0.0.0", "port": 9000, "env_file": "./path
 
 `MCPSettings` 模型中的所有設定，都可以透過 `mcp_settings.json` 或環境變數進行配置。
 
-| Setting | Environment Variable | Type | Default | Description |
+| 設定 | 環境變數 | 型別 | 預設值 | 說明 |
 |---|---|---|---|---|
 | `api_prefix` | `OPENBB_MCP_API_PREFIX` | string | `None` | 覆蓋來自 SystemService 的 API prefix。 |
 | `name` | `OPENBB_MCP_NAME` | string | `"OpenBB MCP"` | 伺服器名稱。 |
@@ -294,7 +294,7 @@ OPENBB_MCP_UVICORN_CONFIG='{"host": "0.0.0.0", "port": 9000, "env_file": "./path
 | `describe_responses` | `OPENBB_MCP_DESCRIBE_RESPONSES` | boolean | `False` | 在工具描述中包含回應型別。 |
 | `system_prompt_file` | `OPENBB_MCP_SYSTEM_PROMPT_FILE` | string | `None` | system prompt 文字檔路徑。 |
 | `server_prompts_file` | `OPENBB_MCP_SERVER_PROMPTS_FILE` | string | `None` | 包含 server prompt 定義清單的 JSON 檔案路徑。 |
-| `default_skills_dir` | `OPENBB_MCP_DEFAULT_SKILLS_DIR` | string | *(bundled skills dir)* | 內建 skill 檔案所在目錄；設為 `null` 可停用。 |
+| `default_skills_dir` | `OPENBB_MCP_DEFAULT_SKILLS_DIR` | string | *內建 skills 目錄* | 內建 skill 檔案所在目錄；設為 `null` 可停用。 |
 | `skills_reload` | `OPENBB_MCP_SKILLS_RELOAD` | boolean | `False` | 每次讀取時重新載入 skill 檔案（適合開發時使用）。 |
 | `skills_providers` | `OPENBB_MCP_SKILLS_PROVIDERS` | list[string] | `None` | 要載入的 vendor skill provider 短名稱（例如 `["claude", "cursor"]`）。 |
 | `cache_expiration_seconds` | `OPENBB_MCP_CACHE_EXPIRATION_SECONDS` | float | `None` | 快取過期秒數；設為 `0` 可停用。 |
@@ -376,7 +376,7 @@ OPENBB_MCP_UVICORN_CONFIG='{"host": "0.0.0.0", "port": 9000, "env_file": "./path
 若你希望提供探索能力，可使用 `--tool-discovery` 啟用。
 否則伺服器會以固定工具集模式運行，而你可以透過 `allowed_tool_categories` 與 `default_tool_categories` 控制可用工具。
 
-## System Prompt
+## 系統 Prompt
 
 system prompt 檔案可以在初始化時傳入，也可以定義在設定檔或環境變數中。
 它必須是一個合法的 `.txt` 檔案路徑，可以是相對路徑或絕對路徑。
@@ -385,7 +385,7 @@ system prompt 會以 `resource://system_prompt` 這個 resource 對外提供，�
 
 client 不會自動使用 system prompt；你應該在 onboarding 與操作指引中明確要求它們使用。
 
-## Skills
+## Skills 技能
 
 伺服器內建一組 **skill guides**，也就是 Markdown 文件，用來教導 agent 如何用 OpenBB Platform 完成複雜的多步驟任務。
 這些 skills 會以 MCP resources 形式提供，並可透過 `list_resources()` 被探索到。
@@ -394,7 +394,7 @@ client 不會自動使用 system prompt；你應該在 onboarding 與操作指�
 
 ### 內建 Skills
 
-| Skill | URI | Description |
+| Skill | URI | 說明 |
 |---|---|---|
 | `develop_extension` | `skill://develop_extension/SKILL.md` | 建立 OpenBB Platform 擴充的逐步指南。 |
 | `build_workspace_app` | `skill://build_workspace_app/SKILL.md` | 建立與執行 OpenBB Workspace 應用程式的指南。 |
@@ -405,7 +405,7 @@ client 不會自動使用 system prompt；你應該在 onboarding 與操作指�
 
 ### Skill 設定
 
-| Setting | Description |
+| 設定 | 說明 |
 |---|---|
 | `default_skills_dir` | 內建 skills 目錄路徑。設為 `null` 或空字串可停用內建 skills 載入。 |
 | `skills_reload` | 設為 `true` 時，每次讀取都會從磁碟重新載入 skill 檔案，適合撰寫或反覆調整 skill 內容時使用。 |
@@ -433,7 +433,7 @@ client 不會自動使用 system prompt；你應該在 onboarding 與操作指�
 OPENBB_MCP_SKILLS_RELOAD=true
 ```
 
-## Server Prompts
+## Server Prompts 伺服器提示詞
 
 server prompt 檔案可以在初始化時傳入，也可以定義在設定檔或環境變數中。
 它必須是一個合法的 `.json` 檔案路徑，內容為 prompt 定義的清單。
@@ -456,31 +456,31 @@ JSON 檔中的每一筆資料都是一個 dictionary，包含以下屬性：
 [
     {
       "name": "equity_analysis",
-      "description": "Perform a comprehensive equity analysis using multiple data sources and metrics",
-      "content": "Conduct a comprehensive analysis of {symbol} for {analysis_period}. Follow this workflow:\n1. First, get basic stock quote and recent price performance using equity_price_performance.\n2. Retrieve fundamental data including financial statements, ratios, and key metrics using [equity_fundamental_ratios, equity_fundamental_metrics, quity_fundamental_balance].\n3. Gather recent news and analyst estimates for the company using [news_company, equity_estiments_price_target].\n4. Compare valuation metrics with industry peers using equity_compare_peers.\n5. Summarize findings with investment recommendation.\n\nFocus areas: {focus_areas}\nRisk tolerance: {risk_tolerance}",
+      "description": "使用多個資料來源與指標執行完整股票分析",
+      "content": "請針對 {symbol} 在 {analysis_period} 期間進行完整分析。請依照以下流程：\n1. 先使用 equity_price_performance 取得基本股價報價與近期價格表現。\n2. 使用 [equity_fundamental_ratios, equity_fundamental_metrics, equity_fundamental_balance] 取得財報、財務比率與關鍵指標等基本面資料。\n3. 使用 [news_company, equity_estimates_price_target] 收集公司近期新聞與分析師預估。\n4. 使用 equity_compare_peers 與同業比較估值指標。\n5. 彙整結果並提出投資建議。\n\n關注面向：{focus_areas}\n風險承受度：{risk_tolerance}",
       "arguments": [
         {
           "name": "symbol",
           "type": "str",
-          "description": "Stock ticker symbol to analyze (e.g., AAPL, TSLA)"
+          "description": "要分析的股票代號（例如 AAPL、TSLA）"
         },
         {
           "name": "analysis_period",
           "type": "str",
-          "default": "last 12 months",
-          "description": "Time period for the analysis"
+          "default": "過去 12 個月",
+          "description": "分析期間"
         },
         {
           "name": "focus_areas",
           "type": "str",
-          "default": "growth, profitability, valuation",
-          "description": "Specific areas to focus on in the analysis"
+          "default": "成長性、獲利能力、估值",
+          "description": "分析時要特別關注的面向"
         },
         {
           "name": "risk_tolerance",
           "type": "str",
-          "default": "moderate",
-          "description": "Risk tolerance level: conservative, moderate, or aggressive"
+          "default": "中等",
+          "description": "風險承受度：保守、中等或積極"
         }
       ],
       "tags": ["equity", "analysis", "comprehensive"]
@@ -491,7 +491,7 @@ JSON 檔中的每一筆資料都是一個 dictionary，包含以下屬性：
 若 prompt 定義或 prompt 參數無效，系統會把錯誤記錄到 console。
 該項目會被忽略，但不會中斷整體流程。
 
-## Inline Prompts
+## Inline Prompts 內嵌提示詞
 
 可以透過 `openapi_extra` 字典，把 prompts 加到某個 endpoint 上。
 
@@ -509,32 +509,32 @@ JSON 檔中的每一筆資料都是一個 dictionary，包含以下屬性：
             "prompts": [
                 {
                     "name": "gdp_summary_prompt",
-                    "description": "Generate a brief summary of GDP for a country.",
-                    "content": "Provide a concise summary of the GDP for {country} over the last {years} years.",
+                    "description": "產生某國 GDP 的簡短摘要。",
+                    "content": "請摘要 {country} 過去 {years} 年的 GDP 表現。",
                     "arguments": [
                         {
                             "name": "years",
                             "type": "int",
                             "default": 5,
-                            "description": "Number of years to summarize.",
+                            "description": "要摘要的年數。",
                         }
                     ],
                     "tags": ["economy", "gdp", "summary"],
                 },
                 {
                     "name": "gdp_comparison_prompt",
-                    "description": "Compare the GDP of two countries.",
-                    "content": "Compare the GDP growth of {country1} and {country2}.",
+                    "description": "比較兩個國家的 GDP。",
+                    "content": "請比較 {country1} 與 {country2} 的 GDP 成長。",
                     "arguments": [
                         {
                             "name": "country1",
                             "type": "str",
-                            "description": "First country for comparison.",
+                            "description": "第一個比較國家。",
                         },
                         {
                             "name": "country2",
                             "type": "str",
-                            "description": "Second country for comparison.",
+                            "description": "第二個比較國家。",
                         },
                     ],
                     "tags": ["economy", "gdp", "comparison"],
@@ -544,7 +544,7 @@ JSON 檔中的每一筆資料都是一個 dictionary，包含以下屬性：
     },
 )
 def get_gdp_data(country: str, period: Literal["annual", "quarterly"] = "annual"):
-    """Get GDP data for a specific country."""
+    """取得特定國家的 GDP 資料。"""
     return {"country": country, "period": period}
 ```
 
@@ -554,12 +554,12 @@ def get_gdp_data(country: str, period: Literal["annual", "quarterly"] = "annual"
 
 __Economy Tools:__
 
-- __`economy_gdp`__: Get GDP data for a specific country.
+- __`economy_gdp`__: 取得特定國家的 GDP 資料。
 
-  - __Associated Prompts:__
+  - __關聯 Prompts:__
 
-    - `gdp_summary_prompt`: Generate a brief summary of GDP for a country. (Arguments: `years`, `country`)
-    - `gdp_comparison_prompt`: Compare the GDP of two countries. (Arguments: `country1`, `country2`)
+    - `gdp_summary_prompt`: 產生某國 GDP 的簡短摘要。（參數：`years`、`country`）
+    - `gdp_comparison_prompt`: 比較兩個國家的 GDP。（參數：`country1`、`country2`）
 
 透過 `execute_prompt` 工具使用某個 prompt：
 
@@ -577,13 +577,13 @@ __Economy Tools:__
 
 ```json
 {
-  "description": "Generate a brief summary of GDP for a country.",
+  "description": "產生某國 GDP 的簡短摘要。",
   "messages": [
     {
       "role": "user",
       "content": {
         "type": "text",
-        "text": "Use the tool, economy_gdp, to perform the following task.\n\nProvide a concise summary of the GDP for Japan over the last 10 years."
+        "text": "請使用 economy_gdp 工具執行以下任務。\n\n請摘要 Japan 過去 10 年的 GDP 表現。"
       }
     }
   ]
@@ -659,7 +659,7 @@ ERROR    Invalid MCP config found in route, 'GET /equity/price'. Skipping tool c
     },
 )
 def some_route(param1: str, internal_param: str = "default"):
-    """An example route with advanced MCP configuration."""
+    """使用進階 MCP 設定的範例路由。"""
     return {"param1": param1}
 ```
 
@@ -667,7 +667,7 @@ def some_route(param1: str, internal_param: str = "default"):
 
 ## Client 範例
 
-請依照 client 需要的 transport 與設定啟動伺服器；預設 transport 為 `http`。
+請依照 client 需要的 transport 與設定啟動伺服器；預設 transport 為 `streamable-http`。
 
 ```bash
 # 使用預設設定啟動
@@ -719,7 +719,7 @@ openbb-mcp --tool-discovery
 
 若要在 Cursor 中使用 OpenBB 工具，你需要先啟動 MCP Server，再告訴 Cursor 如何連接它。
 
-**Step 1：啟動 OpenBB MCP Server**
+**步驟 1：啟動 OpenBB MCP Server**
 
 打開終端機並啟動伺服器。你可以使用預設設定，也可以自行客製。
 
@@ -729,7 +729,7 @@ openbb-mcp
 ```
 伺服器會在 `http://127.0.0.1:8001` 啟動。
 
-**Step 2：設定 Cursor**
+**步驟 2：設定 Cursor**
 
 將下列設定加入 `mcp.json` 的 `mcpServers` 物件中。若該物件不存在，可以自行新增。
 
@@ -745,7 +745,7 @@ openbb-mcp
 
 ### VS Code
 
-**Step 1：在 VS Code 設定中啟用 MCP**
+**步驟 1：在 VS Code 設定中啟用 MCP**
 
 按下 `shift + command + p`，開啟「Preferences: Open User Settings」。
 
@@ -753,7 +753,7 @@ openbb-mcp
 
 <img width="1278" height="411" alt="vs-code-mcp-enable" src="https://github.com/user-attachments/assets/5ace29de-e59c-45c3-b751-c6d92614e0ee" />
 
-**Step 2：啟動 OpenBB MCP Server**
+**步驟 2：啟動 OpenBB MCP Server**
 
 打開終端機並啟動伺服器。你可以使用預設設定，也可以自行客製。
 
@@ -763,7 +763,7 @@ openbb-mcp
 ```
 伺服器會在 `http://127.0.0.1:8001` 啟動。
 
-**Step 3：以 HTTP 方式加入 Server**
+**步驟 3：以 HTTP 方式加入 Server**
 
 按下 `shift + command + p`，選擇「MCP: Add Server」。
 

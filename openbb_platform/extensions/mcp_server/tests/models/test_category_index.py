@@ -3,7 +3,6 @@
 # pylint: disable=redefined-outer-name
 
 import pytest
-
 from openbb_mcp_server.models.category_index import CategoryIndex, _first_sentence
 
 
@@ -126,33 +125,37 @@ def test_get_description_strips_api_sections(index):
 
 
 # ------------------------------------------------------------------
-# _first_sentence unit tests
+# _first_sentence 單元測試
 # ------------------------------------------------------------------
 
 
 class TestFirstSentence:
-    """Tests for the _first_sentence helper."""
+    """測試 `_first_sentence` 輔助函式。"""
 
     def test_empty(self):
+        """空字串應回傳空字串。"""
         assert _first_sentence("") == ""
 
     def test_single_sentence(self):
+        """單一句子應原樣回傳。"""
         assert _first_sentence("Get prices.") == "Get prices."
 
     def test_two_sentences(self):
+        """多句內容應只回傳第一句。"""
         assert _first_sentence("Get prices. Supports many params.") == "Get prices."
 
     def test_multiline(self):
+        """多行內容應只回傳第一句。"""
         assert _first_sentence("Get prices.\nMore detail.") == "Get prices."
 
     def test_no_period_returns_first_line(self):
+        """沒有句點時應回傳第一行。"""
         assert _first_sentence("Get prices\nMore detail") == "Get prices"
 
     def test_strips_api_docs(self):
-        assert (
-            _first_sentence("Get prices.\n\n**Query Parameters:\n- symbol")
-            == "Get prices."
-        )
+        """API 文件區塊應先被移除。"""
+        assert _first_sentence("Get prices.\n\n**Query Parameters:\n- symbol") == "Get prices."
 
     def test_none_like(self):
+        """None 類輸入應回傳空字串。"""
         assert _first_sentence(None) == ""  # type: ignore[arg-type]

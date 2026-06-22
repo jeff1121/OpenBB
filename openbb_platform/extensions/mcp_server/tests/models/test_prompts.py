@@ -16,11 +16,7 @@ async def test_static_prompt_render_success():
         arguments=[PromptArgument(name="name", required=True)],
     )
     rendered = await prompt.render(arguments={"name": "World"})
-    assert rendered == [
-        PromptMessage(
-            role="user", content=TextContent(type="text", text="Hello, World!")
-        )
-    ]
+    assert rendered == [PromptMessage(role="user", content=TextContent(type="text", text="Hello, World!"))]
 
 
 @pytest.mark.asyncio
@@ -48,11 +44,7 @@ async def test_static_prompt_render_no_arguments():
     """Test rendering StaticPrompt with no arguments."""
     prompt = StaticPrompt(name="test_prompt", content="Hello, World!")
     rendered = await prompt.render()
-    assert rendered == [
-        PromptMessage(
-            role="user", content=TextContent(type="text", text="Hello, World!")
-        )
-    ]
+    assert rendered == [PromptMessage(role="user", content=TextContent(type="text", text="Hello, World!"))]
 
 
 @pytest.mark.asyncio
@@ -64,11 +56,7 @@ async def test_static_prompt_render_optional_argument():
         arguments=[PromptArgument(name="name", required=False)],
     )
     rendered = await prompt.render(arguments={"name": "Optional"})
-    assert rendered == [
-        PromptMessage(
-            role="user", content=TextContent(type="text", text="Hello, Optional!")
-        )
-    ]
+    assert rendered == [PromptMessage(role="user", content=TextContent(type="text", text="Hello, Optional!"))]
 
 
 @pytest.mark.asyncio
@@ -96,8 +84,4 @@ async def test_static_prompt_render_with_none_arguments_in_prompt():
     """Test rendering StaticPrompt when arguments attribute is None."""
     prompt = StaticPrompt(name="test_prompt", content="Hello, World!", arguments=None)
     rendered = await prompt.render()
-    assert rendered == [
-        PromptMessage(
-            role="user", content=TextContent(type="text", text="Hello, World!")
-        )
-    ]
+    assert rendered == [PromptMessage(role="user", content=TextContent(type="text", text="Hello, World!"))]

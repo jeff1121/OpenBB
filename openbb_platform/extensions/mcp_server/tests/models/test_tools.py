@@ -25,9 +25,7 @@ def test_subcategory_info():
 def test_category_info():
     """Test the CategoryInfo model."""
     subcategories = [SubcategoryInfo(name="sub1", tool_count=2)]
-    category_info = CategoryInfo(
-        name="test_cat", subcategories=subcategories, total_tools=2
-    )
+    category_info = CategoryInfo(name="test_cat", subcategories=subcategories, total_tools=2)
     assert category_info.name == "test_cat"
     assert len(category_info.subcategories) == 1
     assert category_info.total_tools == 2

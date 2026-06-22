@@ -64,9 +64,7 @@ class MCPService(metaclass=SingletonMeta):
                     e,
                 )
         else:
-            logging.info(
-                "Creating default MCP settings file at %s", cls.MCP_SETTINGS_PATH
-            )
+            logging.info("Creating default MCP settings file at %s", cls.MCP_SETTINGS_PATH)
             default_settings = MCPSettings()
             cls.write_to_file(default_settings)
             settings_dict = default_settings.model_dump()
@@ -81,9 +79,7 @@ class MCPService(metaclass=SingletonMeta):
         """將 MCP 設定寫入設定檔。"""
         try:
             cls.MCP_SETTINGS_PATH.parent.mkdir(parents=True, exist_ok=True)
-            settings_json = json.dumps(
-                settings.model_dump(mode="json"), indent=4, ensure_ascii=False
-            )
+            settings_json = json.dumps(settings.model_dump(mode="json"), indent=4, ensure_ascii=False)
             with cls.MCP_SETTINGS_PATH.open(mode="w", encoding="utf-8") as f:
                 f.write(settings_json)
         except OSError as e:
@@ -149,10 +145,7 @@ class MCPService(metaclass=SingletonMeta):
                 if origin in (dict, list, tuple):
                     is_json_field = True
                 elif origin in (Union, UnionType):
-                    is_json_field = any(
-                        get_origin(arg) in (dict, list, tuple)
-                        for arg in get_args(annotation)
-                    )
+                    is_json_field = any(get_origin(arg) in (dict, list, tuple) for arg in get_args(annotation))
 
                 if is_json_field:
                     try:
@@ -160,12 +153,9 @@ class MCPService(metaclass=SingletonMeta):
                             value.startswith("[") and value.endswith("]")
                         ):
                             env_vars[field_name] = json.loads(value)
-                        elif ":" in value and all(
-                            ":" in part for part in value.split(",")
-                        ):
+                        elif ":" in value and all(":" in part for part in value.split(",")):
                             env_vars[field_name] = {
-                                k.strip(): v.strip()
-                                for k, v in (p.split(":", 1) for p in value.split(","))
+                                k.strip(): v.strip() for k, v in (p.split(":", 1) for p in value.split(","))
                             }
                         else:
                             env_vars[field_name] = value
@@ -258,8 +248,6 @@ class MCPService(metaclass=SingletonMeta):
         if uvicorn_config:
             settings_overrides.setdefault("uvicorn_config", {}).update(uvicorn_config)
         if httpx_config:
-            settings_overrides.setdefault("httpx_client_kwargs", {}).update(
-                httpx_config
-            )
+            settings_overrides.setdefault("httpx_client_kwargs", {}).update(httpx_config)
 
         return settings_overrides

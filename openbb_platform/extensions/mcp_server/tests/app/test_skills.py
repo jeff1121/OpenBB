@@ -13,11 +13,7 @@ from openbb_mcp_server.models.settings import MCPSettings
 
 def _find_system_calls(mock_mcp):
     """Return add_prompt calls tagged with 'system'."""
-    return [
-        c
-        for c in mock_mcp.add_prompt.call_args_list
-        if hasattr(c[0][0], "tags") and "system" in c[0][0].tags
-    ]
+    return [c for c in mock_mcp.add_prompt.call_args_list if hasattr(c[0][0], "tags") and "system" in c[0][0].tags]
 
 
 def _add_provider_calls(mock_mcp):
@@ -40,8 +36,9 @@ def _make_mocks(mock_from_fastapi, mock_category_index, mock_process_routes):
 
 @pytest.fixture(autouse=True)
 def _patch_transforms():
-    with patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()), patch(
-        "openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()
+    with (
+        patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()),
+        patch("openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()),
     ):
         yield
 
@@ -54,9 +51,7 @@ def _patch_transforms():
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_skills_directory_provider_called(
-    mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path
-):
+def test_skills_directory_provider_called(mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path):
     """When default_skills_dir is a valid directory, add_provider is called with SkillsDirectoryProvider."""
     from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
@@ -77,9 +72,7 @@ def test_skills_directory_provider_called(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_skills_reload_passed_to_provider(
-    mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path
-):
+def test_skills_reload_passed_to_provider(mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path):
     """skills_reload=True is forwarded to SkillsDirectoryProvider."""
     from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
@@ -100,9 +93,7 @@ def test_skills_reload_passed_to_provider(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_no_provider_when_skills_dir_is_none(
-    mock_from_fastapi, mock_category_index, mock_process_routes
-):
+def test_no_provider_when_skills_dir_is_none(mock_from_fastapi, mock_category_index, mock_process_routes):
     """No add_provider call is made when default_skills_dir is None."""
     settings = MCPSettings(default_skills_dir=None)  # type: ignore
     mock_mcp = _make_mocks(mock_from_fastapi, mock_category_index, mock_process_routes)
@@ -115,9 +106,7 @@ def test_no_provider_when_skills_dir_is_none(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_no_provider_when_skills_dir_missing(
-    mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path
-):
+def test_no_provider_when_skills_dir_missing(mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path):
     """No add_provider call is made when the skills directory does not exist."""
     settings = MCPSettings(default_skills_dir=str(tmp_path / "nonexistent"))  # type: ignore
     mock_mcp = _make_mocks(mock_from_fastapi, mock_category_index, mock_process_routes)
@@ -150,9 +139,7 @@ def test_vendor_skills_provider_map_contains_expected_keys():
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_vendor_provider_added(
-    mock_from_fastapi, mock_category_index, mock_process_routes
-):
+def test_vendor_provider_added(mock_from_fastapi, mock_category_index, mock_process_routes):
     """When skills_providers is set, the corresponding vendor provider is registered."""
     from fastmcp.server.providers.skills import ClaudeSkillsProvider
 
@@ -169,9 +156,7 @@ def test_vendor_provider_added(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_multiple_vendor_providers_added(
-    mock_from_fastapi, mock_category_index, mock_process_routes
-):
+def test_multiple_vendor_providers_added(mock_from_fastapi, mock_category_index, mock_process_routes):
     """Multiple vendor provider names result in multiple add_provider calls."""
     from fastmcp.server.providers.skills import (
         ClaudeSkillsProvider,
@@ -194,9 +179,7 @@ def test_multiple_vendor_providers_added(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_unknown_vendor_provider_logs_warning(
-    mock_from_fastapi, mock_category_index, mock_process_routes, mock_logger
-):
+def test_unknown_vendor_provider_logs_warning(mock_from_fastapi, mock_category_index, mock_process_routes, mock_logger):
     """Unknown provider names log a warning and do not crash."""
     settings = MCPSettings(default_skills_dir=None, skills_providers=["unknown_provider"])  # type: ignore
     mock_mcp = _make_mocks(mock_from_fastapi, mock_category_index, mock_process_routes)
@@ -213,9 +196,7 @@ def test_unknown_vendor_provider_logs_warning(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_skills_reload_passed_to_vendor_providers(
-    mock_from_fastapi, mock_category_index, mock_process_routes
-):
+def test_skills_reload_passed_to_vendor_providers(mock_from_fastapi, mock_category_index, mock_process_routes):
     """skills_reload=True is forwarded to vendor providers."""
     from fastmcp.server.providers.skills import ClaudeSkillsProvider
 
@@ -285,9 +266,7 @@ def test_default_system_prompt_added_when_vendor_skills_loaded(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_no_default_system_prompt_when_no_skills(
-    mock_from_fastapi, mock_category_index, mock_process_routes
-):
+def test_no_default_system_prompt_when_no_skills(mock_from_fastapi, mock_category_index, mock_process_routes):
     """When no skills are loaded, no default system prompt nudge is added."""
     settings = MCPSettings(default_skills_dir=None)  # type: ignore
     mock_mcp = _make_mocks(mock_from_fastapi, mock_category_index, mock_process_routes)
@@ -301,9 +280,7 @@ def test_no_default_system_prompt_when_no_skills(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_no_default_system_prompt_when_custom_set(
-    mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path
-):
+def test_no_default_system_prompt_when_custom_set(mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path):
     """When a custom system_prompt_file is set, no default nudge prompt is added for skills."""
     skills_dir = tmp_path / "skills"
     skills_dir.mkdir()
@@ -331,9 +308,7 @@ def test_no_default_system_prompt_when_custom_set(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_explicit_instructions_not_overridden(
-    mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path
-):
+def test_explicit_instructions_not_overridden(mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path):
     """When instructions is explicitly set in settings, it is not overwritten."""
     skills_dir = tmp_path / "skills"
     skills_dir.mkdir()

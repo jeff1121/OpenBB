@@ -1,13 +1,9 @@
-# For most projects, this workflow file will not need changing; you simply need
-# to commit it to your repository.
+# 多數專案不需要調整這個 workflow；提交到 repository 後即可使用。
 #
-# You may wish to alter this file to override the set of languages analyzed,
-# or to provide custom queries or build logic.
+# 若需要覆蓋分析語言、加入自訂查詢或自訂建置邏輯，可在此調整。
 #
-# ******** NOTE ********
-# We have attempted to detect the languages in your repository. Please check
-# the `language` matrix defined below to confirm you have the correct set of
-# supported CodeQL languages.
+# ******** 注意 ********
+# 請確認下方 `language` matrix 包含此 repository 需要分析的 CodeQL 支援語言。
 #
 name: "CodeQL Advanced"
 
@@ -26,20 +22,20 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
-    # Runner size impacts CodeQL analysis time. To learn more, please see:
+    # Runner 規格會影響 CodeQL 分析時間。更多資訊：
     #   - https://gh.io/recommended-hardware-resources-for-running-codeql
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners (GitHub.com only)
-    # Consider using larger runners or machines with greater resources for possible analysis time improvements.
+    # 若分析時間過長，可考慮使用更大的 runner 或資源更多的機器。
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
     permissions:
-      # required for all workflows
+      # 所有 workflow 都需要
       security-events: write
 
-      # required to fetch internal or private CodeQL packs
+      # 擷取內部或私有 CodeQL packs 時需要
       packages: read
 
-      # only required for workflows in private repositories
+      # 私有 repository 的 workflow 才需要
       actions: read
       contents: read
 
@@ -63,38 +59,28 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v6
 
-    # Add any setup steps before running the `github/codeql-action/init` action.
-    # This includes steps like installing compilers or runtimes (`actions/setup-node`
-    # or others). This is typically only required for manual builds.
-    # - name: Setup runtime (example)
+    # 若使用手動建置，可在 `github/codeql-action/init` 前加入環境設定步驟。
+    # 例如安裝 compiler 或 runtime（`actions/setup-node` 等）。
+    # - name: 設定 runtime（範例）
     #   uses: actions/setup-example@v1
 
-    # Initializes the CodeQL tools for scanning.
+    # 初始化 CodeQL 掃描工具。
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
         config-file: ${{ matrix.config-file }}
-        # If you wish to specify custom queries, you can do so here or in a config file.
-        # By default, queries listed here will override any specified in a config file.
-        # Prefix the list here with "+" to use these queries and those in the config file.
+        # 使用更完整的安全與品質查詢，並以 "+" 保留 config-file 中既有查詢設定。
+        queries: +security-extended,security-and-quality
 
-        # For more details on CodeQL's query packs, refer to: https://docs.github.com/en/code-security/code-scanning/automatically-scanning-your-code-for-vulnerabilities-and-errors/configuring-code-scanning#using-queries-in-ql-packs
-        # queries: security-extended,security-and-quality
-
-    # If the analyze step fails for one of the languages you are analyzing with
-    # "We were unable to automatically build your code", modify the matrix above
-    # to set the build mode to "manual" for that language. Then modify this step
-    # to build your code.
-    # ℹ️ Command-line programs to run using the OS shell.
-    # 📚 See https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstepsrun
+    # 若某個語言的分析因無法自動建置而失敗，請把上方 matrix 中該語言的
+    # build-mode 改成 "manual"，再在此步驟補上實際建置指令。
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |
-        echo 'If you are using a "manual" build mode for one or more of the' \
-          'languages you are analyzing, replace this with the commands to build' \
-          'your code, for example:'
+        echo '若你對一個或多個分析語言使用 "manual" build mode，' \
+          '請將此處替換為實際建置指令，例如：'
         echo '  make bootstrap'
         echo '  make release'
         exit 1

@@ -48,9 +48,7 @@ def mock_request_without_auth():
 @pytest.mark.asyncio
 @patch("openbb_mcp_server.app.auth.base64")
 @patch("openbb_mcp_server.app.auth.secrets")
-async def test_authorize_success(
-    mock_secrets, mock_base64, mock_settings, mock_request_with_auth
-):
+async def test_authorize_success(mock_secrets, mock_base64, mock_settings, mock_request_with_auth):
     """Test successful authorization."""
     mock_base64.b64decode.return_value.decode.return_value = "testuser:testpass"
     mock_secrets.compare_digest.return_value = True
@@ -61,9 +59,7 @@ async def test_authorize_success(
 
 
 @pytest.mark.asyncio
-async def test_authorize_no_auth_configured(
-    mock_settings_no_auth, mock_request_with_auth
-):
+async def test_authorize_no_auth_configured(mock_settings_no_auth, mock_request_with_auth):
     """Test authorization when no auth is configured."""
     auth_provider = TokenAuthProvider(mock_settings_no_auth)
     result = await auth_provider.authorize(mock_request_with_auth)
@@ -97,9 +93,7 @@ async def test_authorize_wrong_scheme(mock_settings):
 @pytest.mark.asyncio
 @patch("openbb_mcp_server.app.auth.base64")
 @patch("openbb_mcp_server.app.auth.secrets")
-async def test_authorize_invalid_token(
-    mock_secrets, mock_base64, mock_settings, mock_request_with_auth
-):
+async def test_authorize_invalid_token(mock_secrets, mock_base64, mock_settings, mock_request_with_auth):
     """Test authorization failure with an invalid token."""
     mock_base64.b64decode.return_value.decode.return_value = "wronguser:wrongpass"
     mock_secrets.compare_digest.return_value = False

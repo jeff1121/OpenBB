@@ -25,7 +25,7 @@ class MCPSettings(BaseModel):
     # ===== OpenBB MCP 基本設定 =====
     api_prefix: str | None = Field(
         default=None,
-        description="If set, overrides the API prefix from SystemService. For testing or special cases.",
+        description="若有設定，會覆蓋 SystemService 提供的 API prefix；主要用於測試或特殊部署情境。",
         alias="OPENBB_MCP_API_PREFIX",
     )
 
@@ -35,26 +35,25 @@ class MCPSettings(BaseModel):
         alias="OPENBB_MCP_NAME",
     )
     description: str = Field(
-        default="""All OpenBB REST endpoints exposed as MCP tools. Enables LLM agents
-to query financial data, run screeners, and build workflows using
-the exact same operations available to REST clients.""",
+        default="""將所有 OpenBB REST 端點曝露為 MCP 工具。讓 LLM agent
+可以查詢金融資料、執行篩選器，並使用與 REST client 相同的操作建立工作流程。""",
         alias="OPENBB_MCP_DESCRIPTION",
     )
     version: str | None = Field(
         default=None,
-        description="Server version",
+        description="伺服器版本。",
         alias="OPENBB_MCP_VERSION",
     )
 
     # 工具分類篩選
     default_tool_categories: list[str] = Field(
         default_factory=lambda: ["all"],
-        description="Default active tool categories on startup",
+        description="啟動時預設啟用的工具分類。",
         alias="OPENBB_MCP_DEFAULT_TOOL_CATEGORIES",
     )
     allowed_tool_categories: list[str] | None = Field(
         default=None,
-        description="If set, restricts available tool categories to this list",
+        description="若有設定，會將可用工具分類限制在此清單內。",
         alias="OPENBB_MCP_ALLOWED_TOOL_CATEGORIES",
     )
 
@@ -62,8 +61,8 @@ the exact same operations available to REST clients.""",
     enable_tool_discovery: bool = Field(
         default=False,
         description="""
-            Enable tool discovery, allowing the agent to hot-swap tools at runtime.
-            Disable for multi-client or fixed toolset deployments.
+            啟用工具探索，允許 agent 在執行期動態切換工具。
+            多 client 或固定工具集部署可維持停用。
         """,
         alias="OPENBB_MCP_ENABLE_TOOL_DISCOVERY",
     )
@@ -71,43 +70,42 @@ the exact same operations available to REST clients.""",
     # 分頁設定
     list_page_size: int | None = Field(
         default=None,
-        description="Maximum number of tools/resources/prompts returned per page in list responses. "
-        "None disables pagination (all items returned in one response).",
+        description="list 回應每頁最多回傳的 tools/resources/prompts 數量。"
+        "None 代表停用分頁，並在單一回應中回傳所有項目。",
         alias="OPENBB_MCP_LIST_PAGE_SIZE",
     )
 
     # 回應設定
     describe_responses: bool = Field(
         default=False,
-        description="Include response types in tool descriptions",
+        description="在工具描述中包含回應型別。",
         alias="OPENBB_MCP_DESCRIBE_RESPONSES",
     )
 
     # Prompt 設定
     instructions: str | None = Field(
         default=None,
-        description="Server instructions sent to the agent during the MCP initialize handshake."
-        " When set, this text is delivered before any tools or prompts are called."
-        " If not explicitly set, it is auto-populated from the system prompt content.",
+        description="MCP initialize 握手期間傳給 agent 的伺服器指令。"
+        "設定後，這段文字會在任何工具或 prompt 被呼叫前送出。"
+        "若未明確設定，會自動由 system prompt 內容填入。",
         alias="OPENBB_MCP_INSTRUCTIONS",
     )
 
     system_prompt_file: str | None = Field(
         default=None,
-        description="Path to a text file containing the system prompt for the server",
+        description="包含伺服器 system prompt 的文字檔路徑。",
         alias="OPENBB_MCP_SYSTEM_PROMPT_FILE",
     )
 
     server_prompts_file: str | None = Field(
         default=None,
-        description="Path to a JSON file containing prompt templates for the server",
+        description="包含伺服器 prompt template 的 JSON 檔案路徑。",
         alias="OPENBB_MCP_SERVER_PROMPTS_FILE",
     )
 
     default_skills_dir: str | None = Field(
         default=_DEFAULT_SKILLS_DIR,
-        description="Path to a directory containing bundled skill prompt files (.md/.txt)."
-        " Set to None or empty string to disable loading default skills.",
+        description="包含內建 skill prompt 檔案（.md/.txt）的目錄路徑。設為 None 或空字串可停用預設 skills 載入。",
         alias="OPENBB_MCP_DEFAULT_SKILLS_DIR",
     )
 
@@ -116,70 +114,69 @@ the exact same operations available to REST clients.""",
     # 快取設定
     cache_expiration_seconds: float | None = Field(
         default=None,
-        description="Cache expiration time in seconds. set to 0 to disable caching.",
+        description="快取過期秒數；設為 0 可停用快取。",
         alias="OPENBB_MCP_CACHE_EXPIRATION_SECONDS",
     )
 
     # 重複項處理
     on_duplicate_tools: DuplicateBehavior | None = Field(
         default=None,
-        description="Behavior when duplicate tools are registered",
+        description="註冊重複工具時的處理方式。",
         alias="OPENBB_MCP_ON_DUPLICATE_TOOLS",
     )
 
     on_duplicate_resources: DuplicateBehavior | None = Field(
         default=None,
-        description="Behavior when duplicate resources are registered",
+        description="註冊重複 resources 時的處理方式。",
         alias="OPENBB_MCP_ON_DUPLICATE_RESOURCES",
     )
 
     on_duplicate_prompts: DuplicateBehavior | None = Field(
         default=None,
-        description="Behavior when duplicate prompts are registered",
+        description="註冊重複 prompts 時的處理方式。",
         alias="OPENBB_MCP_ON_DUPLICATE_PROMPTS",
     )
 
     # Resource 與元件設定
     resource_prefix_format: Literal["protocol", "path"] | None = Field(
         default=None,
-        description="Format for resource URI prefixes: 'protocol' (prefix+protocol://path) or 'path' (protocol://prefix/path)",
+        description="resource URI prefix 格式：'protocol'（prefix+protocol://path）或 'path'（protocol://prefix/path）。",
         alias="OPENBB_MCP_RESOURCE_PREFIX_FORMAT",
     )
 
     mask_error_details: bool | None = Field(
         default=None,
-        description="If True, mask error details from user functions before sending to clients",
+        description="若為 True，送往 client 前會隱藏使用者函式的錯誤細節。",
         alias="OPENBB_MCP_MASK_ERROR_DETAILS",
     )
 
     dependencies: list[str] | None = Field(
         default=None,
-        description="list of dependencies to install in the server environment",
+        description="要安裝到伺服器環境中的相依套件清單。",
         alias="OPENBB_MCP_DEPENDENCIES",
     )
 
     skills_reload: bool = Field(
         default=False,
-        description="If True, skills providers will reload skill files on every read (useful during development).",
+        description="若為 True，skills providers 每次讀取時都會重新載入 skill 檔案，適合開發期間使用。",
         alias="OPENBB_MCP_SKILLS_RELOAD",
     )
 
     skills_providers: list[str] | None = Field(
         default=None,
-        description="List of vendor skill provider short-names to load (e.g. ['claude', 'cursor']). "
-        "Supported: claude, cursor, vscode, copilot, codex, gemini, goose, opencode.",
+        description="要載入的 vendor skill provider 短名稱清單（例如 ['claude', 'cursor']）。"
+        "支援值：claude、cursor、vscode、copilot、codex、gemini、goose、opencode。",
         alias="OPENBB_MCP_SKILLS_PROVIDERS",
     )
 
     module_exclusion_map: dict[str, str] | None = Field(
         default=None,
-        description="Key:Value pairs mapping API Tags with their Python module names."
-        + " Example, {'econometrics': 'openbb_econometrics'}",
+        description="API tags 與 Python 模組名稱的 Key:Value 對應。" + "例如 {'econometrics': 'openbb_econometrics'}。",
         alias="OPENBB_MCP_MODULE_EXCLUSION_MAP",
     )
     deprecation_warnings: bool | None = Field(
         default=False,
-        description="If True, show deprecation warnings in the console.",
+        description="若為 True，會在 console 顯示 deprecation warnings。",
     )
 
     # ===== HTTP 傳輸設定 =====
@@ -187,34 +184,34 @@ the exact same operations available to REST clients.""",
     # Uvicorn 伺服器設定
     uvicorn_config: dict[str, Any] | None = Field(
         default_factory=lambda: {"host": "127.0.0.1", "port": "8001"},
-        description="Additional configuration object for the Uvicorn server."
-        + " All items are passed as kwargs to `mcp.run(uvicorn_config=uvicorn_config)`",
+        description="Uvicorn 伺服器的額外設定物件。"
+        + "所有項目都會作為 kwargs 傳給 `mcp.run(uvicorn_config=uvicorn_config)`。",
         alias="OPENBB_MCP_UVICORN_CONFIG",
     )
 
     # 對外請求用的 HTTP client 設定
     httpx_client_kwargs: dict[str, Any] | None = Field(
         default_factory=dict,
-        description="Configuration object for async httpx client used by FastMCP."
-        + " Add custom headers as a dictionary under the 'headers' key."
-        + " All items passed directly to FastMCP.from_fastapi(httpx_client_kwargs=httpx_client_kwargs)",
+        description="FastMCP 使用的非同步 httpx client 設定物件。"
+        + "可在 'headers' 鍵下以字典加入自訂 headers。"
+        + "所有項目都會直接傳給 FastMCP.from_fastapi(httpx_client_kwargs=httpx_client_kwargs)。",
         alias="OPENBB_MCP_HTTPX_CLIENT_KWARGS",
     )
     client_auth: tuple[str, str] | None = Field(
         default=None,
         description="""
-        A tuple of (username, password) for client-side basic authentication.
-        If provided, this will be passed to the httpx client for downstream requests.
-        Example: OPENBB_MCP_CLIENT_AUTH='["user","pass"]'
+        client 端基本驗證使用的 (username, password) tuple。
+        若有提供，會傳給 httpx client 供下游請求使用。
+        範例：OPENBB_MCP_CLIENT_AUTH='["user","pass"]'
         """,
         alias="OPENBB_MCP_CLIENT_AUTH",
     )
     server_auth: tuple[str, str] | None = Field(
         default=None,
         description="""
-        A tuple of (username, password) for server-side basic authentication.
-        If provided, the MCP server will require incoming requests to provide these credentials.
-        Example: OPENBB_MCP_SERVER_AUTH='["user","pass"]'
+        server 端基本驗證使用的 (username, password) tuple。
+        若有提供，MCP server 會要求傳入請求提供這組憑證。
+        範例：OPENBB_MCP_SERVER_AUTH='["user","pass"]'
         """,
         alias="OPENBB_MCP_SERVER_AUTH",
     )
@@ -292,9 +289,7 @@ the exact same operations available to REST clients.""",
 
     def __repr__(self) -> str:
         """回傳字串表示。"""
-        return f"{self.__class__.__name__}\n\n" + "\n".join(
-            f"{k}: {v}" for k, v in self.model_dump().items()
-        )
+        return f"{self.__class__.__name__}\n\n" + "\n".join(f"{k}: {v}" for k, v in self.model_dump().items())
 
     def update(self, incoming: "MCPSettings"):
         """更新目前設定。"""

@@ -67,9 +67,7 @@ def test_import_app_factory(dummy_app_file: Path):
 
 def test_import_app_factory_not_callable(dummy_app_file: Path):
     """Test that a TypeError is raised when factory is true but the object is not callable."""
-    with pytest.raises(
-        TypeError, match="appears not to be a callable factory function"
-    ):
+    with pytest.raises(TypeError, match="appears not to be a callable factory function"):
         import_app(f"{dummy_app_file}:app", factory=True)
 
 

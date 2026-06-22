@@ -17,9 +17,7 @@ from pydantic import ValidationError
 def test_argument_definition_model():
     """Test ArgumentDefinitionModel."""
     # Valid data
-    arg = ArgumentDefinitionModel(
-        name="test_arg", type="str", description="A test arg."
-    )
+    arg = ArgumentDefinitionModel(name="test_arg", type="str", description="A test arg.")
     assert arg.name == "test_arg"
     assert arg.type == "str"
 
@@ -51,7 +49,7 @@ def test_prompt_config_model():
     with pytest.raises(ValidationError):
         PromptConfigModel(name="test", content=" ")
 
-    # Unmatched braces
+    # 大括號未成對
     with pytest.raises(ValidationError):
         PromptConfigModel(name="test", content="This is a {test_arg.")
 
@@ -81,7 +79,7 @@ def test_mcp_config_model():
     with pytest.raises(ValidationError):
         MCPConfigModel(methods=["INVALID"])  # type: ignore
 
-    # Duplicate prompt names
+    # 重複的 prompt 名稱
     with pytest.raises(ValidationError):
         MCPConfigModel(
             prompts=[

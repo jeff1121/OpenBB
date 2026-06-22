@@ -19,8 +19,9 @@ from openbb_mcp_server.models.settings import MCPSettings
 
 @pytest.fixture(autouse=True)
 def _patch_transforms():
-    with patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()), patch(
-        "openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()
+    with (
+        patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()),
+        patch("openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()),
     ):
         yield
 
@@ -34,9 +35,7 @@ def test_extract_brief_description():
 
 def test_get_mcp_config_from_route():
     """Test _get_mcp_config_from_route function."""
-    route = APIRoute(
-        "/test", lambda: None, openapi_extra={"mcp_config": {"expose": True}}
-    )
+    route = APIRoute("/test", lambda: None, openapi_extra={"mcp_config": {"expose": True}})
     assert _get_mcp_config_from_route(route) == {"expose": True}
     assert _get_mcp_config_from_route(None) == {}
 
@@ -59,9 +58,7 @@ def test_read_system_prompt_file(tmp_path):
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_create_mcp_server_customization(
-    mock_from_fastapi, mock_category_index, mock_process_routes
-):
+def test_create_mcp_server_customization(mock_from_fastapi, mock_category_index, mock_process_routes):
     """Test create_mcp_server function ensures tool registration and customization."""
     settings = MCPSettings()
     fastapi_app = FastAPI()
@@ -75,9 +72,7 @@ def test_create_mcp_server_customization(
 
     mock_processed_data = MagicMock()
     mock_processed_data.route_lookup = {("/test/dummy", "GET"): route}
-    mock_processed_data.route_maps = [
-        {"path": "/test/dummy", "methods": ["GET"], "mcp_type": "tool"}
-    ]
+    mock_processed_data.route_maps = [{"path": "/test/dummy", "methods": ["GET"], "mcp_type": "tool"}]
     mock_processed_data.prompt_definitions = []
     mock_process_routes.return_value = mock_processed_data
 
@@ -149,9 +144,7 @@ def test_create_mcp_server_disables_all_tools_when_discovery_enabled(
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_create_mcp_server_fixed_toolset_mode(
-    mock_from_fastapi, mock_category_index, mock_process_routes
-):
+def test_create_mcp_server_fixed_toolset_mode(mock_from_fastapi, mock_category_index, mock_process_routes):
     """When discovery disabled, disable all first then re-enable flagged tools."""
     settings = MCPSettings(
         enable_tool_discovery=False,  # type: ignore

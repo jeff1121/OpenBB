@@ -1,27 +1,26 @@
-﻿---
+---
 name: work_with_server
-description: This guide explains how to call tools, interpret responses, discover capabilities, use prompts, and handle errors when interacting with an OpenBB MCP server.
+description: 本指南說明與 OpenBB MCP server 互動時，如何呼叫工具、解讀回應、探索能力、使用 prompts，以及處理錯誤。
 ---
 
-# Working With the OpenBB MCP Server
+# 使用 OpenBB MCP Server
 
-This guide explains how to call tools, interpret responses, discover
-capabilities, use prompts, and handle errors when interacting with an OpenBB
-MCP server.
+本指南說明與 OpenBB MCP server 互動時，如何呼叫工具、解讀回應、
+探索能力、使用 prompts，以及處理錯誤。
 
 ---
 
-## Tool Discovery Workflow
+## 工具探索流程
 
-When first connecting, the server exposes a small set of **admin** tools for
-discovering and activating the full catalog. Not all tools are active by default.
+第一次連線時，server 會公開一小組 **admin** 工具，用來探索並啟用完整
+工具目錄。並非所有工具都會預設啟用。
 
-All visibility changes are **per-session** — each connected client maintains its
-own active toolset, so multiple agents can operate independently.
+所有可見性變更都是 **per-session**，每個連線 client 都會維護自己的
+啟用工具集，因此多個 agent 可以獨立運作。
 
-### Step 1 — List Categories
+### 步驟 1：列出分類
 
-Call `available_categories` (no arguments) to see what is installed:
+呼叫 `available_categories`（不帶 arguments）查看已安裝項目：
 
 ```json
 [
@@ -43,88 +42,101 @@ Call `available_categories` (no arguments) to see what is installed:
 ]
 ```
 
-Each category maps to a top-level API router. Subcategories are nested routers.
+每個 category 都對應到頂層 API router。Subcategory 則是巢狀 router。
 
-### Step 2 — Browse Tools in a Category
+### 步驟 2：瀏覽分類中的工具
 
-Call `available_tools` with a category name:
+以 category 名稱呼叫 `available_tools`：
 
 ```json
-// Input
+// 輸入
 {"category": "equity", "subcategory": "price"}
 
-// Output
+// 輸出
 [
-    {"name": "equity_price_historical", "active": true, "description": "Get historical price data..."},
-    {"name": "equity_price_quote", "active": false, "description": "Get current price quote..."}
+    {"name": "equity_price_historical", "active": true, "description": "取得歷史價格資料..."},
+    {"name": "equity_price_quote", "active": false, "description": "取得目前價格報價..."}
 ]
 ```
 
-The `active` field shows whether the tool is currently enabled. Inactive tools
-cannot be called until activated, but they still show a short cached description
-so they remain discoverable.
+`active` 欄位表示工具目前是否已啟用。未啟用的工具在啟用前不能呼叫，
+但仍會顯示簡短的快取說明，因此仍可被探索。
 
-The `subcategory` argument is optional. Omit it to see all tools in the
-category.
+`subcategory` argument 是選用的。省略它即可查看該 category 中的所有工具。
 
-### Step 3 — Activate Tools
+### 步驟 3：啟用工具
 
-Call `activate_tools` with a list of tool names:
+以工具名稱清單呼叫 `activate_tools`：
 
 ```json
-// Input
+// 輸入
 {"tool_names": ["equity_price_quote", "equity_price_historical"]}
 
-// Output
-"Activated: equity_price_quote, equity_price_historical"
+// 輸出
+"已啟用：equity_price_quote, equity_price_historical"
 ```
 
-Tools that were already active are silently included. Unknown names are reported
-in the response:
+已經啟用的工具會被靜默納入。未知名稱會在回應中回報：
 
 ```
-"Activated: equity_price_quote  Not found: nonexistent_tool"
+"已啟用：equity_price_quote 找不到：nonexistent_tool"
 ```
 
-### Step 4 — Activate an Entire Category
+如果沒有處理任何工具，回應會是：
 
-Call `activate_category` to bulk-activate all tools in a category (or subcategory):
+```
+"沒有處理任何工具。"
+```
+
+### 步驟 4：啟用整個分類
+
+呼叫 `activate_category` 可一次啟用某個 category（或 subcategory）中的所有工具：
 
 ```json
-// Activate everything in equity
+// 啟用 equity 中的全部工具
 {"category": "equity"}
 
-// Activate only equity/price tools
+// 只啟用 equity/price 工具
 {"category": "equity", "subcategory": "price"}
 
-// Output
-"Activated 5 tools in 'equity'/'price': equity_price_historical, equity_price_quote, ..."
+// 輸出
+"已在 'equity'/'price' 啟用 5 個工具：equity_price_historical, equity_price_quote, ..."
 ```
 
-This is faster than listing tool names individually when you need a whole category.
+當你需要整個 category 時，這比逐一列出工具名稱更快。
 
-### Step 5 — Deactivate Tools
+### 步驟 5：停用工具
 
-Call `deactivate_tools` to disable tools no longer needed:
+呼叫 `deactivate_tools` 來停用不再需要的工具：
 
 ```json
+// 輸入
 {"tool_names": ["equity_price_quote"]}
+
+// 輸出
+"已停用：equity_price_quote"
 ```
 
-This reduces noise in the active tool list and can improve context efficiency.
+未知名稱會在回應中回報：
 
-### When Discovery Is Disabled
+```
+"找不到：nonexistent_tool"
+```
 
-If the server was started without `--tool-discovery`, the admin tools are not
-available. All tools in `default_tool_categories` are permanently active.
+這會減少啟用工具清單中的雜訊，並能提升 context 效率。
+
+### 探索功能停用時
+
+如果 server 啟動時未使用 `--tool-discovery`，admin 工具將不可用。
+`default_tool_categories` 中的所有工具都會永久啟用。
 
 ---
 
-## Calling Data Tools
+## 呼叫資料工具
 
-### Input Parameters
+### 輸入參數
 
-Every data tool has a JSON Schema describing its input. A typical tool schema:
+每個資料工具都有描述其輸入的 JSON Schema。典型工具 schema：
 
 ```json
 {
@@ -132,50 +144,48 @@ Every data tool has a JSON Schema describing its input. A typical tool schema:
     "properties": {
         "symbol": {
             "type": "string",
-            "description": "Symbol to get data for."
+            "description": "要取得資料的 symbol。"
         },
         "provider": {
             "type": "string",
             "enum": ["fmp", "polygon", "yfinance"],
-            "description": "The provider to use for the query."
+            "description": "查詢要使用的 provider。"
         },
         "start_date": {
             "anyOf": [{"type": "string", "format": "date"}, {"type": "null"}],
-            "description": "Start date of the data."
+            "description": "資料的開始日期。"
         },
         "end_date": {
             "anyOf": [{"type": "string", "format": "date"}, {"type": "null"}],
-            "description": "End date of the data."
+            "description": "資料的結束日期。"
         },
         "interval": {
             "type": "string",
             "default": "1d",
-            "description": "Time interval of the data."
+            "description": "資料的時間間隔。"
         }
     },
     "required": ["symbol"]
 }
 ```
 
-Key rules:
+主要規則：
 
-- **`provider`** — present only on endpoints that use the provider interface.
-  When listed, its enum shows available provider sources. If the endpoint has
-  only one provider, you can omit it and the sole provider is used
-  automatically. When multiple providers are available, select one from the
-  enum. Different providers may return different fields or support different
-  parameters. Endpoints that do not use the provider interface (basic GET/POST
-  routes) have no `provider` parameter at all.
-- **`symbol` formatting** — symbols are case-insensitive. Multiple symbols can
-  be comma-separated: `"AAPL,MSFT,GOOG"`.
-- **Dates** — always formatted as `YYYY-MM-DD` strings.
-- **Optional parameters** — have `anyOf` with a `null` type or a `default`
-  value. Omit them to use defaults.
-- **Provider-specific parameters** — some parameters are only relevant for
-  certain providers. The schema unions all of them; irrelevant ones are
-  silently ignored.
+- **`provider`**：只會出現在使用 provider interface 的 endpoint。
+  當它被列出時，其 enum 會顯示可用的 provider sources。如果 endpoint
+  只有一個 provider，可以省略它，系統會自動使用唯一的 provider。
+  當有多個 provider 可用時，請從 enum 中選擇一個。不同 provider 可能
+  回傳不同欄位，或支援不同參數。不使用 provider interface 的 endpoint
+  （基本 GET/POST routes）完全不會有 `provider` 參數。
+- **`symbol` 格式**：symbols 不區分大小寫。多個 symbols 可用逗號分隔：
+  `"AAPL,MSFT,GOOG"`。
+- **日期**：一律格式化為 `YYYY-MM-DD` 字串。
+- **選用參數**：會有包含 `null` type 的 `anyOf`，或帶有 `default`
+  value。省略它們即可使用 defaults。
+- **Provider-specific 參數**：部分參數只和特定 providers 有關。
+  schema 會聯集所有參數；無關的參數會被靜默忽略。
 
-### Example Tool Call
+### 工具呼叫範例
 
 ```json
 {
@@ -192,9 +202,9 @@ Key rules:
 
 ---
 
-## Understanding the Response
+## 了解回應
 
-Every OpenBB tool returns an **OBBject** — a standardized response envelope:
+每個 OpenBB 工具都會回傳 **OBBject**，也就是標準化的 response envelope：
 
 ```json
 {
@@ -214,22 +224,22 @@ Every OpenBB tool returns an **OBBject** — a standardized response envelope:
 }
 ```
 
-### Response Fields
+### 回應欄位
 
-| Field | Type | Description |
+| 欄位 | 型別 | 說明 |
 |---|---|---|
-| `id` | `string` | UUID identifying this request |
-| `results` | `list[dict] \| dict \| string \| null` | The actual data. Usually a list of records |
-| `provider` | `string \| null` | Which provider fulfilled the request |
-| `warnings` | `list[object] \| null` | Non-fatal warnings from the provider or platform |
-| `chart` | `object \| null` | Chart data if `chart=true` was passed |
-| `extra` | `dict` | Execution metadata and results metadata |
+| `id` | `string` | 識別這次請求的 UUID |
+| `results` | `list[dict] \| dict \| string \| null` | 實際資料。通常是 records 清單 |
+| `provider` | `string \| null` | 完成請求的 provider |
+| `warnings` | `list[object] \| null` | 來自 provider 或 platform 的非致命警告 |
+| `chart` | `object \| null` | 傳入 `chart=true` 時的 chart data |
+| `extra` | `dict` | 執行 metadata 與 results metadata |
 
-### The `results` Field
+### `results` 欄位
 
-This is the primary data payload. Its structure depends on the endpoint:
+這是主要資料 payload。其結構取決於 endpoint：
 
-**Tabular data** — most common, a list of dictionaries (one per row):
+**表格式資料**：最常見，為 dictionaries 清單（每列一個 dictionary）：
 
 ```json
 "results": [
@@ -238,50 +248,51 @@ This is the primary data payload. Its structure depends on the endpoint:
 ]
 ```
 
-**Single record** — some endpoints return a single dict:
+**單筆 record**：部分 endpoint 會回傳單一 dict：
 
 ```json
 "results": {"symbol": "AAPL", "price": 185.50, "change": 2.30, "volume": 45000000}
 ```
 
-**Empty results** — when no data is available:
+**空結果**：沒有可用資料時：
 
 ```json
 "results": null
 ```
 
-or
+或：
 
 ```json
 "results": []
 ```
 
-**Field names vary by provider** — different providers may return different
-columns for the same endpoint. Always check the keys in the returned records.
+**欄位名稱會因 provider 而異**：不同 provider 對同一 endpoint 可能回傳
+不同欄位。請一律檢查回傳 records 中的 keys。
 
-### The `warnings` Field
+### `warnings` 欄位
 
-Warnings are non-fatal issues that occurred during execution:
+Warnings 是執行期間發生的非致命問題：
 
 ```json
 "warnings": [
     {
         "category": "OpenBBWarning",
-        "message": "Parameter 'source' is not supported by fmp. Available for: intrinio."
+        "message": "參數 'source' 不受 fmp 支援。可用於：intrinio。"
     }
 ]
 ```
 
-Common warning scenarios:
-- Unknown parameters silently ignored by the provider
-- Partial data returned (fewer rows than requested)
-- Provider-specific data quality notes
+常見 warning 情境：
 
-When `warnings` is `null`, no warnings were generated.
+- 未知參數被 provider 靜默忽略
+- 回傳部分資料（列數少於要求）
+- Provider-specific 的資料品質註記
 
-### The `extra` Field
+當 `warnings` 為 `null` 時，表示沒有產生 warnings。
 
-Contains execution metadata and optional results metadata:
+### `extra` 欄位
+
+包含 execution metadata，以及選用的 results metadata：
 
 ```json
 "extra": {
@@ -301,21 +312,21 @@ Contains execution metadata and optional results metadata:
 }
 ```
 
-**`metadata`** — always present (unless disabled):
-- `arguments` — the exact parameters used, split into provider choices,
-  standard params, and extra (provider-specific) params
-- `duration` — nanoseconds the request took
-- `route` — the API endpoint path
-- `timestamp` — when the request was made
+**`metadata`**：一律存在（除非停用）：
 
-**`results_metadata`** — present when the provider returns contextual
-information about the data (e.g., FRED series metadata, CBOE options
-metadata). Contents vary by endpoint and provider.
+- `arguments`：實際使用的精確參數，拆分為 provider choices、
+  standard params 與 extra（provider-specific）params
+- `duration`：請求花費的奈秒數
+- `route`：API endpoint path
+- `timestamp`：請求建立時間
 
-### The `chart` Field
+**`results_metadata`**：當 provider 回傳資料的情境資訊時會出現，例如
+FRED series metadata、CBOE options metadata。內容會因 endpoint 與
+provider 而異。
 
-When a tool is called with `chart: true` (where supported), the chart field
-contains a Plotly figure:
+### `chart` 欄位
+
+當呼叫工具時帶入 `chart: true`（若支援），`chart` 欄位會包含 Plotly figure：
 
 ```json
 "chart": {
@@ -324,58 +335,52 @@ contains a Plotly figure:
 }
 ```
 
-The `content` key contains the Plotly JSON that can be rendered directly.
-Not all endpoints support charting.
+`content` key 包含可直接 render 的 Plotly JSON。並非所有 endpoint 都支援 charting。
 
 ---
 
-## Provider Selection
+## Provider（資料來源）選擇
 
-### How Providers Work
+### Provider 的運作方式
 
-Each data endpoint can have multiple provider sources (e.g., FMP, Yahoo Finance,
-Polygon). Providers differ in:
+每個資料 endpoint 都可以有多個 provider sources（例如 FMP、Yahoo Finance、
+Polygon）。Providers 的差異包括：
 
-- **Available parameters** — some providers offer extra filtering or options
-- **Returned fields** — column names and data granularity may differ
-- **Rate limits and authentication** — some providers require API keys
-- **Data coverage** — geographic markets, date ranges, asset types
+- **可用參數**：部分 providers 會提供額外篩選或選項
+- **回傳欄位**：欄位名稱與資料粒度可能不同
+- **Rate limits 與 authentication**：部分 providers 需要 API keys
+- **資料涵蓋範圍**：地理市場、日期範圍、資產類型
 
-### Choosing a Provider
+### 選擇 Provider
 
-When a tool's input schema includes `provider`, its enum lists all installed
-provider sources for that endpoint. If there is only one provider, the
-parameter can be omitted — the sole provider is selected automatically.
-When multiple providers are available, pick one based on:
+當工具的輸入 schema 包含 `provider` 時，其 enum 會列出該 endpoint
+所有已安裝的 provider sources。如果只有一個 provider，可以省略該參數，
+系統會自動選取唯一的 provider。當有多個 providers 可用時，依據以下條件選擇：
 
-1. **Check the enum** — only listed options work
-2. **Consider the data need** — different providers may have different fields
-3. **API key requirements** — some providers need credentials configured in
-   `~/.openbb_platform/user_settings.json`
+1. **檢查 enum**：只有列出的選項能使用
+2. **考量資料需求**：不同 providers 可能有不同欄位
+3. **API key 要求**：部分 providers 需要在
+   `~/.openbb_platform/user_settings.json` 設定 credentials
 
-Endpoints that do not use the provider interface (basic GET/POST routes added
-via `router.command(methods=["GET"])` or raw FastAPI) have no `provider`
-parameter.
+不使用 provider interface 的 endpoints（透過 `router.command(methods=["GET"])`
+或 raw FastAPI 加入的基本 GET/POST routes）沒有 `provider` 參數。
 
-If a provider fails due to missing credentials, the error message will indicate
-an authentication issue.
+如果 provider 因缺少 credentials 而失敗，錯誤訊息會指出 authentication 問題。
 
-### Provider-Specific Parameters
+### Provider-Specific 參數
 
-Some parameters only apply to certain providers. For example, the `source`
-parameter might only be available with the `intrinio` provider. Passing it to
-`fmp` generates a warning but does not cause an error.
+部分參數只適用於特定 providers。例如 `source` 參數可能只適用於
+`intrinio` provider。將它傳給 `fmp` 會產生 warning，但不會造成 error。
 
 ---
 
-## Working With Prompts
+## 使用 Prompts（提示）
 
-The server includes a prompt system for accessing documentation, usage guides,
-and analysis frameworks.
+server 內含 prompt system，可用來存取文件、使用指南與分析框架。
 
-### List Available Prompts
+### 列出可用 Prompts（提示）
 
-Call `list_prompts` (no arguments):
+呼叫 `list_prompts`（不帶 arguments）：
 
 ```json
 [
@@ -389,129 +394,129 @@ Call `list_prompts` (no arguments):
 ]
 ```
 
-### Execute a Prompt
+### 執行 Prompt（提示）
 
-Call `execute_prompt` with the prompt name and any required arguments:
+以 prompt name 與必要 arguments 呼叫 `execute_prompt`：
 
 ```json
-// Input
+// 輸入
 {"prompt_name": "analyze_stock", "arguments": {"symbol": "AAPL"}}
 
-// Output - rendered prompt content
+// 輸出 - render 後的 prompt content
 {
     "messages": [
-        {"role": "user", "content": "Analyze AAPL focusing on fundamentals..."}
+        {"role": "user", "content": "分析 AAPL，聚焦於 fundamentals..."}
     ]
 }
 ```
 
-Prompts with no arguments (like skills) return their full content as-is.
-Prompts with arguments substitute the provided values into the template.
+沒有 arguments 的 prompts（例如 skills）會原樣回傳完整內容。
+帶有 arguments 的 prompts 會把提供的值替換到 template 中。
 
-### Prompt Categories by Tag
+### 依 Tag 區分的 Prompt（提示）類別
 
-| Tag | Source | Description |
+| Tag | 來源 | 說明 |
 |---|---|---|
-| `system` | System prompt file | Server-wide context and instructions |
-| `server` | Server prompts JSON | Reusable analysis frameworks |
-| `route-specific` | Inline on API routes | Endpoint usage guides |
+| `system` | System prompt 檔案 | 整個 server 的 context 與指示 |
+| `server` | Server prompts JSON | 可重複使用的分析框架 |
+| `route-specific` | API routes 上的 inline 內容 | Endpoint 使用指南 |
 
 ---
 
-## Error Handling
+## 錯誤處理
 
-### Error Types
+### 錯誤類型
 
-| Scenario | What Happens |
+| 情境 | 會發生什麼 |
 |---|---|
-| **Invalid parameters** | Error with HTTP 422 details explaining which parameter failed validation |
-| **Missing required parameter** | Error with HTTP 422 indicating the missing field |
-| **Provider authentication failure** | Error with HTTP 401/403 indicating credentials are missing or invalid |
-| **Provider rate limit** | Error with HTTP 429 or provider-specific rate limit message |
-| **No data available** | Successful response with `results: null` or `results: []` |
-| **Tool not active** | Tool does not appear in the available tools list |
-| **Unknown tool name** | Standard MCP protocol error |
-| **Category not found** (discovery) | Error listing available categories |
-| **Connection failure** | Error with "Request error: ..." |
+| **無效參數** | 回傳 error，包含 HTTP 422 詳細資訊，說明哪個參數驗證失敗 |
+| **缺少必要參數** | 回傳 error，包含 HTTP 422，指出缺少的欄位 |
+| **Provider authentication 失敗** | 回傳 error，包含 HTTP 401/403，指出 credentials 遺失或無效 |
+| **Provider rate limit** | 回傳 error，包含 HTTP 429 或 provider-specific rate limit 訊息 |
+| **沒有可用資料** | 成功回應，且 `results: null` 或 `results: []` |
+| **工具未啟用** | 工具不會出現在可用工具清單中 |
+| **未知工具名稱** | 標準 MCP protocol error |
+| **找不到 category**（discovery） | 回傳 error 並列出可用分類 |
+| **連線失敗** | 回傳 error，內容為 "Request error: ..." |
 
-### Interpreting Empty Results
+### 解讀空結果
 
-A response with `results: null` or `results: []` is **not an error** — it
-means the provider had no data matching the query. Common causes:
+包含 `results: null` 或 `results: []` 的回應 **不是 error**，它表示
+provider 沒有符合查詢的資料。常見原因：
 
-- Date range with no trading days
-- Symbol not covered by the selected provider
-- Data not yet available for the requested period
+- 日期範圍內沒有交易日
+- 選取的 provider 不涵蓋該 symbol
+- 要求期間的資料尚未可用
 
-Try a different provider, adjust the date range, or verify the symbol format.
+請嘗試不同 provider、調整日期範圍，或確認 symbol 格式。
 
-### Reading Validation Errors
+### 讀取 Validation 錯誤
 
-Validation errors (HTTP 422) include detail about what went wrong:
+Validation errors（HTTP 422）會包含出錯細節：
 
 ```
 HTTP error 422: Unprocessable Entity - {"detail": [{"loc": ["query", "symbol"], "msg": "field required", "type": "value_error.missing"}]}
 ```
 
-The `loc` field shows which parameter failed, and `msg` explains why.
+`loc` 欄位會顯示哪個 parameter 失敗，`msg` 說明原因。
 
 ---
 
-## Practical Patterns
+## 實用模式
 
-### Fetching Time Series Data
+### 取得時間序列資料
 
-1. Activate the tool: `activate_tools(["equity_price_historical"])`
-2. Call with date range:
+1. 啟用工具：`activate_tools(["equity_price_historical"])`
+2. 以日期範圍呼叫：
    ```json
    {"symbol": "AAPL", "provider": "fmp", "start_date": "2025-01-01", "end_date": "2025-02-01"}
    ```
-3. Read `results` — each record has `date`, `open`, `high`, `low`, `close`,
-   `volume` (field names depend on provider)
+3. 讀取 `results`：每筆 record 都有 `date`、`open`、`high`、`low`、`close`、
+   `volume`（欄位名稱取決於 provider）
 
-### Comparing Multiple Symbols
+### 比較多個 Symbols
 
-Pass comma-separated symbols:
+傳入逗號分隔的 symbols：
 
 ```json
 {"symbol": "AAPL,MSFT,GOOG", "provider": "fmp"}
 ```
 
-Results will contain records for all symbols. Filter by the `symbol` field in
-each record if present, or by the ordering pattern.
+回傳結果會包含所有 symbols 的 records。如果存在 `symbol` 欄位，可依該欄位
+篩選；否則可依排序模式篩選。
 
-### Chaining Tool Calls
+### 串接工具呼叫
 
-Use the output of one tool as input to another:
+將某個工具的輸出作為另一個工具的輸入：
 
-1. Get peers: `equity_compare_peers({"symbol": "AAPL", "provider": "fmp"})`
-2. Extract symbols from `results`
-3. Get quotes: `equity_price_quote({"symbol": "AAPL,PEER1,PEER2", "provider": "fmp"})`
+1. 取得 peers：`equity_compare_peers({"symbol": "AAPL", "provider": "fmp"})`
+2. 從 `results` 擷取 symbols
+3. 取得 quotes：`equity_price_quote({"symbol": "AAPL,PEER1,PEER2", "provider": "fmp"})`
 
-### Checking Data Coverage
+### 檢查資料涵蓋範圍
 
-When unsure what providers are available for an endpoint, look at the tool's
-input schema — the `provider` parameter's `enum` lists all installed options.
+不確定 endpoint 可用哪些 providers 時，查看工具的輸入 schema；
+`provider` 參數的 `enum` 會列出所有已安裝選項。
 
-### Using Charts
+### 使用 Charts
 
-Pass `chart: true` to get a pre-built Plotly visualization:
+傳入 `chart: true` 以取得預先建立的 Plotly 視覺化：
 
 ```json
 {"symbol": "AAPL", "provider": "fmp", "chart": true}
 ```
 
-The `chart` field in the response contains the Plotly figure JSON.
+回應中的 `chart` 欄位包含 Plotly figure JSON。
 
 ---
 
-## User Settings and Defaults
+## 使用者設定與預設值
 
-The server reads user settings from `~/.openbb_platform/user_settings.json`:
+server 會讀取 `~/.openbb_platform/user_settings.json` 中的使用者設定：
 
-### API Keys
+### API 金鑰
 
-Provider credentials are stored under `credentials`:
+Provider 憑證儲存在 `credentials` 底下：
 
 ```json
 {
@@ -522,12 +527,11 @@ Provider credentials are stored under `credentials`:
 }
 ```
 
-Without the required API key, calls to that provider will fail with an
-authentication error.
+如果缺少必要 API key，對該 provider 的呼叫會因 authentication error 而失敗。
 
-### Default Provider
+### 預設 Provider
 
-Set a default provider per endpoint so it is preselected:
+為每個 endpoint 設定預設 provider，使其預先被選取：
 
 ```json
 {
@@ -540,13 +544,11 @@ Set a default provider per endpoint so it is preselected:
 }
 ```
 
-When multiple providers are available, this determines the default selection
-if the parameter is omitted.
+當有多個 providers 可用時，如果省略參數，這會決定預設選擇。
 
-### Default Parameters
+### 預設參數
 
-Individual parameters can be defaulted so they are applied when not explicitly
-passed:
+可為個別參數設定 defaults，使它們在未明確傳入時套用：
 
 ```json
 {
@@ -565,39 +567,38 @@ passed:
 }
 ```
 
-### Output Preferences
+### 輸出偏好
 
-The `output_type` preference controls how the Python Interface returns data.
-For MCP, the server always returns the full OBBject JSON regardless of this
-setting, but it is relevant for the Python Interface:
+`output_type` preference 控制 Python Interface 回傳資料的方式。
+對 MCP 而言，server 一律回傳完整 OBBject JSON，不受此設定影響；
+但它與 Python Interface 相關：
 
-| Output Type | Description |
+| 輸出型別 | 說明 |
 |---|---|
-| `OBBject` | Full response object (default) |
+| `OBBject` | 完整 response object（預設） |
 | `dataframe` | Pandas DataFrame |
 | `numpy` | NumPy array |
 | `dict` | Python dictionary |
 | `polars` | Polars DataFrame |
-| `llm` | JSON-encoded string of results only |
+| `llm` | 只包含 results 的 JSON 編碼字串 |
 | `chart` | Chart object |
 
-### LLM Mode
+### LLM 模式
 
-Setting `output_type` to `"llm"` in the Python Interface strips everything
-except `results` and returns it as a JSON string. This is optimized for token
-efficiency in LLM frameworks. In the REST API / MCP context, the full OBBject
-is always returned.
+在 Python Interface 中將 `output_type` 設為 `"llm"` 會移除除了 `results`
+以外的所有內容，並以 JSON 字串回傳。這針對 LLM frameworks 的 token
+效率最佳化。在 REST API / MCP 情境中，一律回傳完整 OBBject。
 
 ---
 
-## Working With Skills
+## 使用技能
 
-Skills are MCP resources exposed at `skill://<name>/SKILL.md` URIs. Discover
-and read them via the standard MCP resource methods.
+技能是以 `skill://<name>/SKILL.md` URI 公開的 MCP resources。
+透過標準 MCP resource methods 探索並讀取它們。
 
-### Discover Available Skills
+### 探索可用技能
 
-Call `list_resources()` (no arguments):
+呼叫 `list_resources()`（不帶 arguments）：
 
 ```json
 [
@@ -608,44 +609,44 @@ Call `list_resources()` (no arguments):
 ]
 ```
 
-### Read a Skill
+### 讀取技能
 
-Call `read_resource()` with the skill URI:
+以 skill URI 呼叫 `read_resource()`：
 
 ```json
-// Input
+// 輸入
 {"uri": "skill://develop_extension/SKILL.md"}
 
-// Output — full Markdown content of the skill guide
+// 輸出 - skill guide 的完整 Markdown content
 ```
 
-### Supporting Files
+### 支援檔案
 
-Skill directories can contain additional supporting files (e.g. templates,
-examples). Reference the skill manifest at `skill://<name>/_manifest` to
-discover any supporting files packaged alongside the main `SKILL.md`.
+技能目錄可以包含額外支援檔案（例如 templates、examples）。
+參考 `skill://<name>/_manifest` 的 skill manifest，即可探索與主要
+`SKILL.md` 一起封裝的支援檔案。
 
 ---
 
-## Quick Reference
+## 快速參考
 
-### Admin Tools (Discovery)
+### Admin 工具（探索）
 
-| Tool | Input | Returns |
+| 工具 | 輸入 | 回傳 |
 |---|---|---|
-| `available_categories` | *(none)* | List of categories with subcategories and tool counts |
-| `available_tools` | `category`, `subcategory?` | List of tools with active status and descriptions |
-| `activate_tools` | `tool_names: list` | Status message |
-| `deactivate_tools` | `tool_names: list` | Status message |
-| `activate_category` | `category`, `subcategory?` | Status message with count and tool names |
+| `available_categories` | *(none)* | 含 subcategories 與 tool counts 的 categories 清單 |
+| `available_tools` | `category`, `subcategory?` | 含 active 狀態與說明的 tools 清單 |
+| `activate_tools` | `tool_names: list` | 狀態訊息 |
+| `deactivate_tools` | `tool_names: list` | 狀態訊息 |
+| `activate_category` | `category`, `subcategory?` | 含數量與工具名稱的狀態訊息 |
 
-### OBBject Response Structure
+### OBBject 回應結構
 
-| Field | Always Present | Content |
+| 欄位 | 一律存在 | 內容 |
 |---|---|---|
-| `id` | Yes | Request UUID |
-| `results` | Yes | Data payload (list, dict, string, or null) |
-| `provider` | Yes | Provider name or null |
-| `warnings` | Yes | Warning list or null |
-| `chart` | Yes | Chart data or null |
-| `extra` | Yes | Metadata dict (may be empty) |
+| `id` | 是 | 識別請求的 UUID |
+| `results` | 是 | 資料 payload（list、dict、string 或 null） |
+| `provider` | 是 | Provider 名稱或 null |
+| `warnings` | 是 | Warning 清單或 null |
+| `chart` | 是 | Chart 資料或 null |
+| `extra` | 是 | metadata 字典（可能為空） |

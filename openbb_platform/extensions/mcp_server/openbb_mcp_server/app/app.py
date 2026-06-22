@@ -78,9 +78,7 @@ def _extract_brief_description(full_description: str) -> str:
     """擷取詳細 API 文件之前的簡短描述。"""
     if not full_description:
         return "No description available"
-    brief, *_ = re.split(
-        r"\n{2,}\*\*(?:Query Parameters|Responses):", full_description, maxsplit=1
-    )
+    brief, *_ = re.split(r"\n{2,}\*\*(?:Query Parameters|Responses):", full_description, maxsplit=1)
     return brief.strip() or "No description available"
 
 
@@ -104,9 +102,7 @@ def _strip_api_prefix(path: str, api_prefix: str) -> str:
         return ""
     if not path.startswith("/"):
         path = "/" + path
-    remainder = (
-        path[len(api_prefix) :] if api_prefix and path.startswith(api_prefix) else path
-    )
+    remainder = path[len(api_prefix) :] if api_prefix and path.startswith(api_prefix) else path
     return remainder.lstrip("/")
 
 
@@ -155,11 +151,11 @@ def _setup_file_system_prompt(mcp: FastMCP, settings: MCPSettings) -> None:
         FunctionPrompt.from_function(
             system_prompt_func,
             name="system_prompt",
-            description="This is the system prompt for the MCP Server."
-            + " If you are an agent connected to this server,"
-            + " please read this carefully to understand how to interact with, and utilize, the MCP features."
-            + " This prompt provides essential guidance and usage instructions"
-            + " for effective use of the tools and resources provided by this server.",
+            description="這是 MCP Server 的 system prompt。"
+            + "若你是連線到此 server 的 agent，"
+            + "請仔細閱讀，以理解如何互動並使用 MCP 功能。"
+            + "這個 prompt 會提供必要的操作指引，"
+            + "協助有效使用此 server 提供的工具與 resources。",
             tags={"system"},
         )
     )
@@ -196,9 +192,7 @@ def _add_prompts_from_json(mcp: FastMCP, settings: MCPSettings) -> None:
         prompt_description = prompt_def.get("description", "")
 
         if not prompt_description:
-            logger.error(
-                "Skipping prompt definition without a description: %s", prompt_def
-            )
+            logger.error("Skipping prompt definition without a description: %s", prompt_def)
             continue
 
         prompt_content = prompt_def.get("content", "")
@@ -222,9 +216,7 @@ def _add_prompts_from_json(mcp: FastMCP, settings: MCPSettings) -> None:
         if prompt_arguments_def:
             for arg in prompt_arguments_def:
                 try:
-                    validated_arg = ArgumentDefinitionModel(**arg).model_dump(
-                        exclude_none=True
-                    )
+                    validated_arg = ArgumentDefinitionModel(**arg).model_dump(exclude_none=True)
                     arguments.append(
                         PromptArgument(
                             name=validated_arg["name"],
@@ -233,9 +225,7 @@ def _add_prompts_from_json(mcp: FastMCP, settings: MCPSettings) -> None:
                         )
                     )
                     if "default" in validated_arg:
-                        argument_defaults[validated_arg["name"]] = validated_arg[
-                            "default"
-                        ]
+                        argument_defaults[validated_arg["name"]] = validated_arg["default"]
                 except Exception as e:  # pylint: disable=broad-except
                     logger.error(
                         "Skipping argument definition in server prompt, %s, due to error: %s\nDefinition: %s",
@@ -332,9 +322,7 @@ def _add_skills_default_prompt(mcp: FastMCP) -> None:
         FunctionPrompt.from_function(
             _default_system_prompt,
             name="system_prompt",
-            description=(
-                "System prompt with guidance on discovering and using this server's bundled skills and tools."
-            ),
+            description=("System prompt with guidance on discovering and using this server's bundled skills and tools."),
             tags={"system"},
         )
     )
@@ -445,11 +433,7 @@ def create_mcp_server(
         if name := mcp_cfg.get("name"):
             component.name = name
         else:
-            component.name = (
-                f"{category}_{subcategory}_{tool}"
-                if subcategory != "general"
-                else f"{category}_{tool}"
-            )
+            component.name = f"{category}_{subcategory}_{tool}" if subcategory != "general" else f"{category}_{tool}"
 
         # 標籤
         component.tags.add(category)
@@ -468,35 +452,26 @@ def create_mcp_server(
 
         # 修剪描述內容
         describe_override = mcp_cfg.get("describe_responses")
-        if describe_override is False or (
-            describe_override is None and not settings.describe_responses
-        ):
-            component.description = _extract_brief_description(
-                component.description or ""
-            )
+        if describe_override is False or (describe_override is None and not settings.describe_responses):
+            component.description = _extract_brief_description(component.description or "")
 
         # 將 prompt 中繼資料附加到工具描述中
         if isinstance(component, OpenAPITool):
             prompts = tool_prompts_map.get(component.name)
             if prompts:
-                prompt_metadata_str = "\n\n**Associated Prompts:**"
+                prompt_metadata_str = "\n\n**關聯 Prompts:**"
                 for p in prompts:
                     prompt_metadata_str += f"\n- **{p['name']}**: {p['description']}"
                     if p["arguments"]:
-                        prompt_metadata_str += "\n  - Arguments: " + ", ".join(
-                            [f"`{arg['name']}`" for arg in p["arguments"]]
-                        )
-                component.description = (
-                    component.description or ""
-                ) + prompt_metadata_str
+                        prompt_metadata_str += "\n  - 參數：" + ", ".join([f"`{arg['name']}`" for arg in p["arguments"]])
+                component.description = (component.description or "") + prompt_metadata_str
 
         # 啟用/停用：先看逐路由覆寫，再看分類預設值
         enable_override = mcp_cfg.get("enable")
         if isinstance(enable_override, bool):
             should_enable = enable_override
         elif "all" in settings.default_tool_categories or any(
-            tag in settings.default_tool_categories
-            for tag in getattr(component, "tags", set())
+            tag in settings.default_tool_categories for tag in getattr(component, "tags", set())
         ):
             should_enable = True
         else:
@@ -610,24 +585,17 @@ def create_mcp_server(
                         SubcategoryInfo(name=subcat_name, tool_count=len(tool_names))
                         for subcat_name, tool_names in sorted(subcategories.items())
                     ],
-                    total_tools=sum(
-                        len(tool_names) for tool_names in subcategories.values()
-                    ),
+                    total_tools=sum(len(tool_names) for tool_names in subcategories.values()),
                 )
                 for category_name, subcategories in sorted(categories.items())
             ]
 
         @mcp.tool(tags={"admin"})
         async def available_tools(
-            category: Annotated[
-                str, Field(description="The category of tools to list")
-            ],
+            category: Annotated[str, Field(description="要列出的工具分類")],
             subcategory: Annotated[
                 str | None,
-                Field(
-                    description="Optional subcategory to filter by. "
-                    "Use 'general' for tools directly under the category."
-                ),
+                Field(description="可選的子分類篩選條件；分類直屬工具請使用 'general'。"),
             ] = None,
         ) -> list[ToolInfo]:
             """列出特定分類與子分類中的工具。"""
@@ -635,17 +603,14 @@ def create_mcp_server(
 
             if cat_data is None:
                 available = list(category_index.get_categories().keys())
-                raise ValueError(
-                    f"Category '{category}' not found. "
-                    f"Available categories: {', '.join(sorted(available))}"
-                )
+                raise ValueError(f"找不到分類 '{category}'。可用分類：{', '.join(sorted(available))}")
 
             if subcategory:
                 names = category_index.get_subcategory_names(category, subcategory)
                 if not names:
                     raise ValueError(
-                        f"Subcategory '{subcategory}' not found in category '{category}'. "
-                        f"Available subcategories: {', '.join(sorted(cat_data.keys()))}"
+                        f"分類 '{category}' 中找不到子分類 '{subcategory}'。"
+                        f"可用子分類：{', '.join(sorted(cat_data.keys()))}"
                     )
             else:
                 names = category_index.get_category_names(category)
@@ -663,16 +628,12 @@ def create_mcp_server(
                     desc = _extract_brief_description(tool_map[name].description or "")
                 else:
                     desc = category_index.get_description(name)
-                results.append(
-                    ToolInfo(name=name, active=name in active_names, description=desc)
-                )
+                results.append(ToolInfo(name=name, active=name in active_names, description=desc))
             return results
 
         @mcp.tool(tags={"admin"})
         async def activate_tools(
-            tool_names: Annotated[
-                list[str], Field(description="Names of tools to activate")
-            ],
+            tool_names: Annotated[list[str], Field(description="要啟用的工具名稱")],
             ctx: Context,
         ) -> str:
             """為目前 session 啟用一個或多個工具。"""
@@ -682,16 +643,14 @@ def create_mcp_server(
                 await ctx.enable_components(names=set(valid))
             parts: list[str] = []
             if valid:
-                parts.append(f"Activated: {', '.join(valid)}")
+                parts.append(f"已啟用：{', '.join(valid)}")
             if invalid:
-                parts.append(f"Not found: {', '.join(invalid)}")
-            return " ".join(parts) or "No tools processed."
+                parts.append(f"找不到：{', '.join(invalid)}")
+            return " ".join(parts) or "沒有處理任何工具。"
 
         @mcp.tool(tags={"admin"})
         async def deactivate_tools(
-            tool_names: Annotated[
-                list[str], Field(description="Names of tools to deactivate")
-            ],
+            tool_names: Annotated[list[str], Field(description="要停用的工具名稱")],
             ctx: Context,
         ) -> str:
             """為目前 session 停用一個或多個工具。"""
@@ -701,20 +660,18 @@ def create_mcp_server(
                 await ctx.disable_components(names=set(valid))
             parts: list[str] = []
             if valid:
-                parts.append(f"Deactivated: {', '.join(valid)}")
+                parts.append(f"已停用：{', '.join(valid)}")
             if invalid:
-                parts.append(f"Not found: {', '.join(invalid)}")
-            return " ".join(parts) or "No tools processed."
+                parts.append(f"找不到：{', '.join(invalid)}")
+            return " ".join(parts) or "沒有處理任何工具。"
 
         @mcp.tool(tags={"admin"})
         async def activate_category(
-            category: Annotated[
-                str, Field(description="Category name to activate all tools for")
-            ],
+            category: Annotated[str, Field(description="要啟用所有工具的分類名稱")],
             ctx: Context,
             subcategory: Annotated[
                 str | None,
-                Field(description="Optional subcategory to narrow activation"),
+                Field(description="可選的子分類，用於縮小啟用範圍"),
             ] = None,
         ) -> str:
             """為目前 session 啟用某個分類（或子分類）的所有工具。"""
@@ -724,17 +681,11 @@ def create_mcp_server(
                 names = category_index.get_category_names(category)
             if not names:
                 available = list(category_index.get_categories().keys())
-                raise ValueError(
-                    f"No tools found in '{category}'"
-                    + (f"/'{subcategory}'" if subcategory else "")
-                    + f". Available categories: {', '.join(sorted(available))}"
-                )
+                scope = f"'{category}'" + (f"/'{subcategory}'" if subcategory else "")
+                raise ValueError(f"{scope} 中找不到工具。可用分類：{', '.join(sorted(available))}")
             await ctx.enable_components(names=names)
             scope = f"'{category}'" + (f"/'{subcategory}'" if subcategory else "")
-            return (
-                f"Activated {len(names)} tools in {scope}"
-                f": {', '.join(sorted(names))}"
-            )
+            return f"已在 {scope} 啟用 {len(names)} 個工具：{', '.join(sorted(names))}"
 
     # 透過 transforms 將 prompts 與 resources 轉為工具，
     # 讓只有工具介面的 client 也能列出/渲染 prompts 與列出/讀取 resources。
@@ -746,20 +697,17 @@ def create_mcp_server(
         skill_name: Annotated[
             str,
             Field(
-                description=(
-                    "Name of the skill (used as the directory name). "
-                    "Must be a valid directory name (lowercase, underscores)."
-                ),
+                description=("skill 名稱（會作為目錄名稱）。必須是合法目錄名稱（小寫、底線）。"),
             ),
         ],
         files: Annotated[
             dict[str, str],
             Field(
                 description=(
-                    "Dictionary of filename -> content for the skill directory. "
-                    "Must include 'SKILL.md' as the main file. "
-                    "May include supporting files such as templates, examples, "
-                    "or configuration snippets (e.g. 'pyproject.toml.template', 'example.py')."
+                    "skill 目錄的 filename -> content 字典。"
+                    "必須包含作為主檔案的 'SKILL.md'。"
+                    "也可包含 templates、examples 或設定片段等支援檔案"
+                    "（例如 'pyproject.toml.template'、'example.py'）。"
                 ),
             ),
         ],
@@ -767,11 +715,9 @@ def create_mcp_server(
             str,
             Field(
                 description=(
-                    "Target skills provider to install into. "
-                    "Use 'bundled' for the server's built-in skills directory, "
-                    "or a vendor name: "
-                    + ", ".join(f"'{k}'" for k in _VENDOR_SKILLS_PROVIDERS)
-                    + "."
+                    "要安裝到的目標 skills provider。"
+                    "伺服器內建 skills 目錄請使用 'bundled'，"
+                    "或使用 vendor 名稱：" + ", ".join(f"'{k}'" for k in _VENDOR_SKILLS_PROVIDERS) + "。"
                 ),
             ),
         ] = "bundled",
@@ -783,9 +729,7 @@ def create_mcp_server(
         使其可立即透過 `list_resources` / `read_resource` 使用。
         """
         if "SKILL.md" not in files:
-            raise ValueError(
-                "The 'files' dict must include a 'SKILL.md' entry as the main skill file."
-            )
+            raise ValueError("'files' 字典必須包含作為主 skill 檔案的 'SKILL.md' 項目。")
 
         # 找出目標 SkillsDirectoryProvider
         target_key = target.lower().strip()
@@ -813,15 +757,10 @@ def create_mcp_server(
                 for vendor_name, vendor_cls in _VENDOR_SKILLS_PROVIDERS.items():
                     if isinstance(p, vendor_cls):
                         available.append(vendor_name)
-            raise ValueError(
-                f"Target provider '{target}' not found or not loaded. "
-                f"Available targets: {', '.join(available)}"
-            )
+            raise ValueError(f"找不到或尚未載入目標 provider '{target}'。可用目標：{', '.join(available)}")
 
         if not target_provider._roots:  # noqa: SLF001
-            raise ValueError(
-                f"Target provider '{target}' has no configured root directories."
-            )
+            raise ValueError(f"目標 provider '{target}' 未設定 root 目錄。")
 
         # 使用第一個 root 目錄進行寫入
         root_dir = target_provider._roots[0]  # noqa: SLF001
@@ -986,9 +925,7 @@ def main():
         httpx_kwargs = settings.get_httpx_kwargs()
 
         # 以完整組態建立 MCP 伺服器
-        mcp_server = create_mcp_server(
-            settings, target_app, httpx_kwargs, auth=settings.server_auth
-        )
+        mcp_server = create_mcp_server(settings, target_app, httpx_kwargs, auth=settings.server_auth)
 
         if args.transport == "stdio":
             asyncio.run(stdio_main(mcp_server))

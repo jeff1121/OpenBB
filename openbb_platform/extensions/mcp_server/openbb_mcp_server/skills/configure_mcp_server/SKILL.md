@@ -1,29 +1,29 @@
-﻿---
+---
 name: configure_mcp_server
-description: This guide covers installation, configuration, authentication, tool discovery, prompt management, and client integration for `openbb-mcp-server`.
+description: 本指南涵蓋 `openbb-mcp-server` 的安裝、設定、驗證、工具探索、提示詞管理與用戶端整合。
 ---
 
-# Configure and Build the OpenBB MCP Server
+# 設定並建置 OpenBB MCP 伺服器
 
-This guide covers installation, configuration, authentication, tool discovery,
-prompt management, and client integration for `openbb-mcp-server`.
+本指南涵蓋 `openbb-mcp-server` 的安裝、設定、驗證、工具探索、
+提示詞管理與用戶端整合。
 
 ---
 
-## Installation
+## 安裝
 
 ```
 pip install openbb-mcp-server
 ```
 
-This installs the `openbb-mcp` CLI command. To include the default OpenBB
-extensions as tools, also install them:
+這會安裝 `openbb-mcp` CLI 命令。若要將預設 OpenBB
+擴充套件納入工具，也請安裝它們：
 
 ```
 pip install openbb
 ```
 
-Or install individual extensions:
+或安裝個別擴充套件：
 
 ```
 pip install openbb-equity openbb-economy
@@ -31,78 +31,78 @@ pip install openbb-equity openbb-economy
 
 ---
 
-## Starting the Server
+## 啟動伺服器
 
-### Default (all installed OpenBB extensions)
+### 預設值（所有已安裝的 OpenBB 擴充套件）
 
 ```
 openbb-mcp
 ```
 
-Defaults: `--host 127.0.0.1 --port 8001 --transport streamable-http`
+預設值：`--host 127.0.0.1 --port 8001 --transport streamable-http`
 
-### With a Custom FastAPI Application
+### 使用自訂 FastAPI 應用程式
 
 ```
-# File path with default instance name "app"
+# 使用預設實例名稱 "app" 的檔案路徑
 openbb-mcp --app ./my_app.py
 
-# Explicit instance name
+# 明確指定實例名稱
 openbb-mcp --app ./my_app.py --name my_app
 
-# Module import syntax
+# 模組 import 語法
 openbb-mcp --app my_package.app:my_app
 
-# Factory function pattern
+# Factory function 模式
 openbb-mcp --app ./my_app.py:create_app --factory
 ```
 
-### Transport Options
+### 傳輸選項
 
-| Transport | Flag | Use Case |
+| 傳輸方式 | 旗標 | 使用情境 |
 |---|---|---|
-| `streamable-http` | `--transport streamable-http` | Default. HTTP-based, works with Cursor, VS Code |
-| `sse` | `--transport sse` | Legacy Server-Sent Events. Required by Cline |
-| `stdio` | `--transport stdio` | Standard I/O. Used by Claude Desktop |
+| `streamable-http` | `--transport streamable-http` | 預設值。以 HTTP 為基礎，可搭配 Cursor、VS Code 使用 |
+| `sse` | `--transport sse` | 舊版 Server-Sent Events。Cline 需要此選項 |
+| `stdio` | `--transport stdio` | Standard I/O。Claude Desktop 使用此選項 |
 
 ---
 
-## CLI Arguments
+## CLI 引數
 
-| Argument | Description | Default |
+| 引數 | 說明 | 預設值 |
 |---|---|---|
-| `--app <path>` | Path to FastAPI application file or `module:instance` | OpenBB default app |
-| `--name <name>` | Name of the FastAPI instance or factory function | `app` |
-| `--factory` | Treat `--name` as a factory function | `false` |
-| `--host <host>` | Server host | `127.0.0.1` |
-| `--port <port>` | Server port | `8001` |
-| `--transport <type>` | `streamable-http`, `sse`, or `stdio` | `streamable-http` |
-| `--default-categories <csv>` | Comma-separated default active tool categories | `all` |
-| `--allowed-categories <csv>` | Restrict available categories to this list | All categories |
-| `--tool-discovery` | Enable runtime tool activation/deactivation | Discovery disabled |
-| `--system-prompt <path>` | Path to a `.txt` system prompt file | None |
-| `--server-prompts <path>` | Path to a `.json` server prompts file | None |
+| `--app <path>` | FastAPI 應用程式檔案路徑或 `module:instance` | OpenBB 預設應用程式 |
+| `--name <name>` | FastAPI 實例或 factory function 的名稱 | `app` |
+| `--factory` | 將 `--name` 視為 factory function | `false` |
+| `--host <host>` | 伺服器 host | `127.0.0.1` |
+| `--port <port>` | 伺服器 port | `8001` |
+| `--transport <type>` | `streamable-http`、`sse` 或 `stdio` | `streamable-http` |
+| `--default-categories <csv>` | 以逗號分隔的預設啟用工具分類 | `all` |
+| `--allowed-categories <csv>` | 將可用分類限制為此清單 | 所有分類 |
+| `--tool-discovery` | 啟用執行期間的工具啟用/停用 | 探索已停用 |
+| `--system-prompt <path>` | `.txt` system prompt 檔案路徑 | None |
+| `--server-prompts <path>` | `.json` server prompts 檔案路徑 | None |
 
-Any additional `--key value` pairs are forwarded to Uvicorn as config.
+任何額外的 `--key value` 組合都會作為 config 轉送給 Uvicorn。
 
 ---
 
-## Configuration Precedence
+## 設定優先順序
 
-Settings are resolved in this order (highest priority first):
+設定會依以下順序解析（最高優先權在前）：
 
-1. **CLI arguments** — command-line flags
-2. **Environment variables** — prefixed with `OPENBB_MCP_`
-3. **Config file** — `~/.openbb_platform/mcp_settings.json`
-4. **Defaults** — built-in MCPSettings defaults
+1. **CLI 引數** — 命令列旗標
+2. **環境變數** — 以 `OPENBB_MCP_` 為前綴
+3. **設定檔** — `~/.openbb_platform/mcp_settings.json`
+4. **預設值** — 內建 MCPSettings 預設值
 
-### Config File Example
+### 設定檔範例
 
-Create `~/.openbb_platform/mcp_settings.json`:
+建立 `~/.openbb_platform/mcp_settings.json`：
 
 ```json
 {
-    "name": "My MCP Server",
+    "name": "我的 MCP 伺服器",
     "default_tool_categories": ["equity", "economy"],
     "enable_tool_discovery": false,
     "describe_responses": false,
@@ -111,12 +111,12 @@ Create `~/.openbb_platform/mcp_settings.json`:
 }
 ```
 
-### Environment Variables
+### 環境變數
 
-All settings map to `OPENBB_MCP_` prefixed environment variables:
+所有設定都會對應到以 `OPENBB_MCP_` 為前綴的環境變數：
 
 ```
-OPENBB_MCP_NAME="My MCP Server"
+OPENBB_MCP_NAME="我的 MCP 伺服器"
 OPENBB_MCP_DEFAULT_TOOL_CATEGORIES="equity,economy,crypto"
 OPENBB_MCP_ENABLE_TOOL_DISCOVERY=true
 OPENBB_MCP_SYSTEM_PROMPT_FILE="/path/to/prompt.txt"
@@ -125,19 +125,19 @@ OPENBB_MCP_SERVER_PROMPTS_FILE="/path/to/prompts.json"
 
 ---
 
-## Settings Reference
+## 設定參考
 
-### Server Identity
+### 伺服器識別
 
-| Setting | Env Var | Type | Default |
+| 設定 | 環境變數 | 型別 | 預設值 |
 |---|---|---|---|
 | `name` | `OPENBB_MCP_NAME` | `str` | `"OpenBB MCP"` |
-| `description` | `OPENBB_MCP_DESCRIPTION` | `str` | Auto-generated |
+| `description` | `OPENBB_MCP_DESCRIPTION` | `str` | 自動產生 |
 | `version` | `OPENBB_MCP_VERSION` | `str \| None` | `None` |
 
-### Tool Configuration
+### 工具設定
 
-| Setting | Env Var | Type | Default |
+| 設定 | 環境變數 | 型別 | 預設值 |
 |---|---|---|---|
 | `default_tool_categories` | `OPENBB_MCP_DEFAULT_TOOL_CATEGORIES` | `list[str]` | `["all"]` |
 | `allowed_tool_categories` | `OPENBB_MCP_ALLOWED_TOOL_CATEGORIES` | `list[str] \| None` | `None` |
@@ -146,50 +146,50 @@ OPENBB_MCP_SERVER_PROMPTS_FILE="/path/to/prompts.json"
 | `describe_responses` | `OPENBB_MCP_DESCRIBE_RESPONSES` | `bool` | `false` |
 | `api_prefix` | `OPENBB_MCP_API_PREFIX` | `str \| None` | `None` |
 
-### Prompt Configuration
+### 提示詞設定
 
-| Setting | Env Var | Type | Default |
+| 設定 | 環境變數 | 型別 | 預設值 |
 |---|---|---|---|
 | `system_prompt_file` | `OPENBB_MCP_SYSTEM_PROMPT_FILE` | `str \| None` | `None` |
 | `server_prompts_file` | `OPENBB_MCP_SERVER_PROMPTS_FILE` | `str \| None` | `None` |
-| `default_skills_dir` | `OPENBB_MCP_DEFAULT_SKILLS_DIR` | `str \| None` | Built-in skills dir |
+| `default_skills_dir` | `OPENBB_MCP_DEFAULT_SKILLS_DIR` | `str \| None` | 內建 skills 目錄 |
 | `skills_reload` | `OPENBB_MCP_SKILLS_RELOAD` | `bool` | `false` |
 | `skills_providers` | `OPENBB_MCP_SKILLS_PROVIDERS` | `list[str] \| None` | `None` |
 
-### HTTP Transport
+### HTTP 傳輸
 
-| Setting | Env Var | Type | Default |
+| 設定 | 環境變數 | 型別 | 預設值 |
 |---|---|---|---|
 | `uvicorn_config` | `OPENBB_MCP_UVICORN_CONFIG` | `dict` | `{"host": "127.0.0.1", "port": "8001"}` |
 
-### Duplicate Handling
+### 重複項目處理
 
-| Setting | Env Var | Type | Default |
+| 設定 | 環境變數 | 型別 | 預設值 |
 |---|---|---|---|
 | `on_duplicate_tools` | `OPENBB_MCP_ON_DUPLICATE_TOOLS` | `str \| None` | `None` |
 | `on_duplicate_resources` | `OPENBB_MCP_ON_DUPLICATE_RESOURCES` | `str \| None` | `None` |
 | `on_duplicate_prompts` | `OPENBB_MCP_ON_DUPLICATE_PROMPTS` | `str \| None` | `None` |
 
-Options: `"warn"`, `"error"`, `"replace"`, `"ignore"`
+選項：`"warn"`、`"error"`、`"replace"`、`"ignore"`
 
-### Module Exclusion
+### 模組排除
 
-| Setting | Env Var | Type | Default |
+| 設定 | 環境變數 | 型別 | 預設值 |
 |---|---|---|---|
-| `module_exclusion_map` | `OPENBB_MCP_MODULE_EXCLUSION_MAP` | `dict \| None` | Auto-detected |
+| `module_exclusion_map` | `OPENBB_MCP_MODULE_EXCLUSION_MAP` | `dict \| None` | 自動偵測 |
 
-By default, categories whose Python modules cannot be imported are excluded
-(e.g., `econometrics`, `quantitative`, `technical`, `coverage`).
+預設情況下，無法匯入 Python 模組的分類會被排除
+（例如 `econometrics`、`quantitative`、`technical`、`coverage`）。
 
 ---
 
-## Authentication
+## 驗證
 
-Three authentication modes are available.
+可使用三種驗證模式。
 
-### Server-Side Authentication
+### 伺服器端驗證
 
-Protect incoming MCP requests with a Bearer token:
+使用 Bearer token 保護傳入的 MCP 請求：
 
 ```json
 {
@@ -197,18 +197,18 @@ Protect incoming MCP requests with a Bearer token:
 }
 ```
 
-Or via environment variable:
+或透過環境變數：
 
 ```
 OPENBB_MCP_SERVER_AUTH='["username", "password"]'
 ```
 
-Clients must include `Authorization: Bearer <base64(username:password)>` in
-their requests. The token is base64-encoded `username:password`.
+用戶端必須在請求中包含 `Authorization: Bearer <base64(username:password)>`。
+Token 是經過 base64 編碼的 `username:password`。
 
-### Client-Side Authentication
+### 用戶端驗證
 
-Authenticate outbound requests to downstream services:
+驗證送往下游服務的對外請求：
 
 ```json
 {
@@ -216,18 +216,18 @@ Authenticate outbound requests to downstream services:
 }
 ```
 
-Or via environment variable:
+或透過環境變數：
 
 ```
 OPENBB_MCP_CLIENT_AUTH='["api_user", "api_key"]'
 ```
 
-This passes `auth=(user, pass)` to the httpx client used for internal requests.
+這會將 `auth=(user, pass)` 傳給用於內部請求的 httpx 用戶端。
 
-### Programmatic Authentication
+### 程式化驗證
 
-When using the server as a library, pass a custom `AuthProvider` to
-`create_mcp_server()`:
+將伺服器作為函式庫使用時，將自訂 `AuthProvider` 傳給
+`create_mcp_server()`：
 
 ```python
 from openbb_mcp_server.app.app import create_mcp_server
@@ -239,110 +239,108 @@ mcp = create_mcp_server(settings, my_fastapi_app, auth=my_auth_provider)
 
 ---
 
-## Tool Discovery
+## 工具探索
 
-When `enable_tool_discovery` is `true`, five admin tools are
-available to the agent:
+當 `enable_tool_discovery` 為 `true` 時，agent 可使用五個管理工具：
 
-| Tool | Description |
+| 工具 | 說明 |
 |---|---|
-| `available_categories` | Lists all tool categories with tool counts |
-| `available_tools` | Lists tools in a specific category with active state and short descriptions |
-| `activate_tools` | Enables tools by name for this session |
-| `deactivate_tools` | Disables tools by name for this session |
-| `activate_category` | Bulk-activates all tools in a category (or subcategory) for this session |
+| `available_categories` | 列出所有工具分類及工具數量 |
+| `available_tools` | 列出特定分類中的工具，包含啟用狀態與簡短描述 |
+| `activate_tools` | 依名稱啟用本工作階段的工具 |
+| `deactivate_tools` | 依名稱停用本工作階段的工具 |
+| `activate_category` | 批次啟用本工作階段中某個分類（或子分類）的所有工具 |
 
-All visibility changes are **per-session** — each connected client maintains its
-own active toolset, so the server is safe for multi-user deployments.
+所有可見性變更都是 **每個工作階段獨立** — 每個已連線用戶端都會維護自己的
+啟用工具集，因此伺服器可安全用於多使用者部署。
 
-### Controlling Active Tools on Startup
+### 控制啟動時的啟用工具
 
-Use `default_tool_categories` to control which categories are active initially:
+使用 `default_tool_categories` 控制哪些分類一開始為啟用狀態：
 
 ```
-# Only equity and economy tools active on start
+# 啟動時只啟用 equity 與 economy tools
 openbb-mcp --default-categories equity,economy
 
-# All admin tools active (for exploration)
+# 啟用所有 admin 工具（用於探索）
 openbb-mcp --default-categories admin
 ```
 
-The agent can then use `available_categories` and `activate_tools` (or
-`activate_category` for bulk activation) to dynamically enable additional
-tools as needed.
+之後 agent 可視需要使用 `available_categories` 與 `activate_tools`
+（或用 `activate_category` 批次啟用）來動態啟用額外工具。
 
-### Restricting Available Categories
+### 限制可用分類
 
-Use `allowed_tool_categories` to permanently hide categories:
+使用 `allowed_tool_categories` 永久隱藏分類：
 
 ```
 openbb-mcp --allowed-categories equity,economy,crypto
 ```
 
-Categories not in this list cannot be activated even via discovery tools.
+不在此清單中的分類即使透過探索工具也無法啟用。
 
-### Enabling Discovery
+### 啟用探索
 
 ```
 openbb-mcp --tool-discovery
 ```
 
-All tools in `default_tool_categories` are active and the admin tools are
-not registered unless discovery is enabled.
+`default_tool_categories` 中的所有工具都會成為啟用狀態；若未啟用探索，
+管理工具不會被註冊。
 
 ---
 
-## Tool Naming Convention
+## 工具命名慣例
 
-Tools are named from their API route path after stripping the API prefix:
+工具會根據移除 API prefix 後的 API route 路徑命名：
 
-| Route Path | Tool Name |
+| Route 路徑 | 工具名稱 |
 |---|---|
 | `/equity/price/historical` | `equity_price_historical` |
 | `/economy/cpi` | `economy_cpi` |
 | `/my_app/process` | `my_app_process` |
 
-The first path segment is the **category**, the last segment is the **tool
-name**, and segments in between form the **subcategory**. When there is no
-subcategory, it defaults to `"general"`.
+第一個路徑區段是 **分類**，最後一個區段是 **工具
+名稱**，中間的區段組成 **子分類**。沒有
+子分類時，預設為 `"general"`。
 
 ---
 
-## Prompt System
+## 提示詞系統
 
-The server supports four layers of prompts, all accessible via the
-`list_prompts` and `execute_prompt` tools.
+伺服器支援四層提示詞，全部都可透過
+`list_prompts` 與 `execute_prompt` 工具存取。
 
-### 1. System Prompt (tag: `system`)
+### 1. 系統提示詞（tag：`system`）
 
-A plain text file loaded once at startup. Also exposed as
-`resource://system_prompt`.
+啟動時載入一次的純文字檔。也會以 `resource://system_prompt`
+公開。
 
 ```
 openbb-mcp --system-prompt /path/to/system_prompt.txt
 ```
 
-### 2. Server Prompts JSON (tag: `server`)
+### 2. 伺服器提示詞 JSON（tag：`server`）
 
-A JSON file defining reusable prompts with optional arguments:
+定義可重用提示詞並可選擇性附帶 arguments 的 JSON 檔案：
 
 ```json
 [
     {
         "name": "analyze_stock",
-        "description": "Framework for analyzing a stock.",
-        "content": "Analyze {symbol} focusing on {aspect}.",
+        "description": "分析股票的架構。",
+        "content": "分析 {symbol}，並聚焦於 {aspect}。",
         "arguments": [
             {
                 "name": "symbol",
                 "type": "str",
-                "description": "Ticker symbol"
+                "description": "股票代號"
             },
             {
                 "name": "aspect",
                 "type": "str",
                 "default": "fundamentals",
-                "description": "Analysis focus area"
+                "description": "分析重點領域"
             }
         ],
         "tags": ["analysis"]
@@ -350,17 +348,17 @@ A JSON file defining reusable prompts with optional arguments:
 ]
 ```
 
-Argument types: `str`, `int`, `float`, `bool`, `list`, `dict`, `any`
+Argument 型別：`str`、`int`、`float`、`bool`、`list`、`dict`、`any`
 
-Arguments with a `default` value are optional; those without are required.
+含有 `default` 值的 arguments 為選填；未提供 `default` 的則為必填。
 
 ```
 openbb-mcp --server-prompts /path/to/prompts.json
 ```
 
-### 3. Inline Prompts (tag: route-specific)
+### 3. Inline 提示詞（tag：route-specific）
 
-Define prompts directly on FastAPI routes via `openapi_extra`:
+透過 `openapi_extra` 直接在 FastAPI routes 上定義提示詞：
 
 ```python
 @router.command(
@@ -370,8 +368,8 @@ Define prompts directly on FastAPI routes via `openapi_extra`:
             "prompts": [
                 {
                     "name": "usage_guide",
-                    "description": "How to use this endpoint.",
-                    "content": "To analyze {symbol}, call this endpoint with..."
+                    "description": "如何使用此 endpoint。",
+                    "content": "若要分析 {symbol}，請以...呼叫此 endpoint"
                 }
             ]
         }
@@ -381,26 +379,26 @@ async def my_endpoint(symbol: str) -> OBBject:
     ...
 ```
 
-### 4. Bundled Skills (Resources)
+### 4. 內建 Skills（Resources）
 
-Skill guides are exposed as MCP resources discoverable via `list_resources()`.
-Each skill is accessible at a `skill://<name>/SKILL.md` URI.
+Skill 指南會公開為 MCP resources，可透過 `list_resources()` 探索。
+每個 skill 都可在 `skill://<name>/SKILL.md` URI 存取。
 
 ```
-# Discover available skills
-list_resources()  # returns skill://develop_extension/SKILL.md, etc.
+# 探索可用 skills
+list_resources()  # 回傳 skill://develop_extension/SKILL.md 等
 
-# Read a specific skill
+# 讀取特定 skill
 read_resource("skill://configure_mcp_server/SKILL.md")
 ```
 
-Custom skills directory:
+自訂 skills 目錄：
 
 ```
 OPENBB_MCP_DEFAULT_SKILLS_DIR=/path/to/my/skills
 ```
 
-Set to empty string to disable bundled skills:
+設為空字串可停用內建 skills：
 
 ```
 OPENBB_MCP_DEFAULT_SKILLS_DIR=""
@@ -408,7 +406,7 @@ OPENBB_MCP_DEFAULT_SKILLS_DIR=""
 
 ### Skills Reload
 
-Enable hot-reload of skill files without restarting the server (useful during development):
+啟用 skill files 的 hot-reload，無須重新啟動伺服器（適合開發期間使用）：
 
 ```json
 {
@@ -416,7 +414,7 @@ Enable hot-reload of skill files without restarting the server (useful during de
 }
 ```
 
-Or via environment variable:
+或透過環境變數：
 
 ```
 OPENBB_MCP_SKILLS_RELOAD=true
@@ -424,8 +422,8 @@ OPENBB_MCP_SKILLS_RELOAD=true
 
 ### Vendor Skills Providers
 
-Load skill directories from well-known vendor locations (e.g. `~/.claude/skills/`).
-Sets the `skills_providers` list in `mcp_settings.json`:
+從知名 vendor 位置載入 skill directories（例如 `~/.claude/skills/`）。
+這會設定 `mcp_settings.json` 中的 `skills_providers` 清單：
 
 ```json
 {
@@ -433,15 +431,15 @@ Sets the `skills_providers` list in `mcp_settings.json`:
 }
 ```
 
-Or via environment variable (comma-separated):
+或透過環境變數（以逗號分隔）：
 
 ```
 OPENBB_MCP_SKILLS_PROVIDERS="claude,cursor"
 ```
 
-Supported provider names:
+支援的 provider names：
 
-| Name | Default Directory |
+| 名稱 | 預設目錄 |
 |---|---|
 | `claude` | `~/.claude/skills/` |
 | `cursor` | `~/.cursor/skills/` |
@@ -453,9 +451,9 @@ Supported provider names:
 
 ---
 
-## Inline MCP Configuration (MCPConfigModel)
+## Inline MCP Configuration（MCPConfigModel）
 
-Control how individual routes appear in the MCP server via `openapi_extra`:
+透過 `openapi_extra` 控制個別路由在 MCP 伺服器中的呈現方式：
 
 ```python
 @app.get(
@@ -472,23 +470,23 @@ Control how individual routes appear in the MCP server via `openapi_extra`:
 )
 ```
 
-### MCPConfigModel Fields
+### MCPConfigModel 欄位
 
-| Field | Type | Default | Description |
+| 欄位 | 型別 | 預設值 | 說明 |
 |---|---|---|---|
-| `expose` | `bool \| None` | `None` | Set `false` to hide route from MCP |
-| `mcp_type` | `str \| None` | `None` | `"tool"`, `"resource"`, or `"resource_template"` |
-| `methods` | `list[str] \| None` | `None` | HTTP methods to expose |
-| `exclude_args` | `list[str] \| None` | `None` | Arguments to hide from the tool schema |
-| `prompts` | `list[dict]` | `[]` | Inline prompt definitions |
+| `expose` | `bool \| None` | `None` | 設為 `false` 可從 MCP 隱藏路由 |
+| `mcp_type` | `str \| None` | `None` | `"tool"`、`"resource"` 或 `"resource_template"` |
+| `methods` | `list[str] \| None` | `None` | 要公開的 HTTP 方法 |
+| `exclude_args` | `list[str] \| None` | `None` | 要從工具 schema 隱藏的 arguments |
+| `prompts` | `list[dict]` | `[]` | Inline prompt 定義 |
 
 ---
 
-## Client Configuration Examples
+## 用戶端設定範例
 
-### Claude Desktop (stdio transport)
+### Claude Desktop（stdio 傳輸）
 
-In Claude Desktop's MCP config file:
+在 Claude Desktop 的 MCP 設定檔中：
 
 ```json
 {
@@ -506,7 +504,7 @@ In Claude Desktop's MCP config file:
 }
 ```
 
-For a custom app:
+若使用自訂應用程式：
 
 ```json
 {
@@ -524,10 +522,10 @@ For a custom app:
 }
 ```
 
-### Cursor (streamable-http)
+### Cursor（streamable-http）
 
-1. Start the server: `openbb-mcp`
-2. In Cursor's `mcp.json`:
+1. 啟動伺服器：`openbb-mcp`
+2. 在 Cursor 的 `mcp.json` 中：
 
 ```json
 {
@@ -539,28 +537,28 @@ For a custom app:
 }
 ```
 
-### VS Code (streamable-http)
+### VS Code（streamable-http）
 
-1. Enable MCP in VS Code settings (Settings → Chat → MCP)
-2. Start the server: `openbb-mcp`
-3. Open Command Palette → "MCP: Add Server" → HTTP
-4. Enter URL: `http://127.0.0.1:8001/mcp`
+1. 在 VS Code 設定中啟用 MCP（Settings → Chat → MCP）
+2. 啟動伺服器：`openbb-mcp`
+3. 開啟 Command Palette → "MCP: Add Server" → HTTP
+4. 輸入 URL：`http://127.0.0.1:8001/mcp`
 
-For the Cline VS Code extension, use `--transport sse`:
+若使用 Cline VS Code extension，請使用 `--transport sse`：
 
 ```
 openbb-mcp --transport sse
 ```
 
-### With Authentication
+### 使用驗證
 
-Start with server auth enabled:
+以啟用伺服器驗證的方式啟動：
 
 ```
 openbb-mcp --host 0.0.0.0 --port 8001
 ```
 
-With `mcp_settings.json`:
+搭配 `mcp_settings.json`：
 
 ```json
 {
@@ -568,7 +566,7 @@ With `mcp_settings.json`:
 }
 ```
 
-Clients include the Bearer token in their configuration:
+用戶端會在設定中包含 Bearer token：
 
 ```json
 {
@@ -583,22 +581,22 @@ Clients include the Bearer token in their configuration:
 }
 ```
 
-The token value is `base64("admin:secretpass")`.
+Token 值為 `base64("admin:secretpass")`。
 
 ---
 
-## Advanced Configuration
+## 進階設定
 
-### Lists and Dicts in Environment Variables
+### 環境變數中的清單與字典
 
-Lists can be passed as comma-separated strings:
+清單可以用逗號分隔字串傳入：
 
 ```
 OPENBB_MCP_DEFAULT_TOOL_CATEGORIES="equity,economy,crypto"
 OPENBB_MCP_ALLOWED_TOOL_CATEGORIES="equity,economy"
 ```
 
-Dicts and tuples must be JSON-encoded strings:
+字典與 tuples 必須是 JSON 編碼字串：
 
 ```
 OPENBB_MCP_SERVER_AUTH='["user", "pass"]'
@@ -608,13 +606,13 @@ OPENBB_MCP_HTTPX_CLIENT_KWARGS='{"timeout": 30, "verify": false}'
 
 ### SSL / HTTPS
 
-Pass SSL config via Uvicorn:
+透過 Uvicorn 傳入 SSL 設定：
 
 ```
 openbb-mcp --ssl-keyfile /path/to/key.pem --ssl-certfile /path/to/cert.pem
 ```
 
-Or in the config file:
+或在設定檔中設定：
 
 ```json
 {
@@ -627,7 +625,7 @@ Or in the config file:
 }
 ```
 
-### Using as a Library
+### 作為函式庫使用
 
 ```python
 import asyncio
@@ -642,7 +640,7 @@ async def hello():
     return "Hello World"
 
 settings = MCPSettings(
-    name="My Custom MCP",
+    name="我的自訂 MCP",
     default_tool_categories=["all"],
     enable_tool_discovery=False,
 )
@@ -653,14 +651,14 @@ mcp.run(transport="streamable-http")
 
 ---
 
-## Workflow Summary
+## 工作流程摘要
 
-To configure and deploy an OpenBB MCP server:
+若要設定並部署 OpenBB MCP 伺服器：
 
-1. **Install**: `pip install openbb-mcp-server` (plus any desired OpenBB extensions).
-2. **Configure**: Create `~/.openbb_platform/mcp_settings.json` with desired settings.
-3. **Add prompts**: Write a system prompt file and/or server prompts JSON.
-4. **Start**: Run `openbb-mcp` with appropriate CLI flags.
-5. **Connect**: Configure your MCP client (Claude Desktop, Cursor, VS Code) with the server URL or stdio command.
-6. **Discover**: Use `available_categories`, `activate_tools`, and `activate_category` to find and enable tools.
-7. **Iterate**: Adjust settings, add inline `mcp_config` to routes, add skill files.
+1. **安裝**：`pip install openbb-mcp-server`（以及任何需要的 OpenBB 擴充套件）。
+2. **設定**：使用所需設定建立 `~/.openbb_platform/mcp_settings.json`。
+3. **新增提示詞**：撰寫 system prompt 檔案和/或 server prompts JSON。
+4. **啟動**：使用適當的 CLI 旗標執行 `openbb-mcp`。
+5. **連線**：使用伺服器 URL 或 stdio 命令設定 MCP 用戶端（Claude Desktop、Cursor、VS Code）。
+6. **探索**：使用 `available_categories`、`activate_tools` 與 `activate_category` 尋找並啟用工具。
+7. **迭代**：調整設定、將 inline `mcp_config` 加入路由、加入 skill files。

@@ -30,13 +30,7 @@ class StaticPrompt(Prompt):
                 raise PromptError(f"Missing required arguments: {missing}")
 
         try:
-            rendered_content = (
-                self.content.format(**args) if self.arguments or args else self.content
-            )
-            return [
-                PromptMessage(
-                    role="user", content=TextContent(type="text", text=rendered_content)
-                )
-            ]
+            rendered_content = self.content.format(**args) if self.arguments or args else self.content
+            return [PromptMessage(role="user", content=TextContent(type="text", text=rendered_content))]
         except KeyError as e:
             raise PromptError(f"Missing argument for formatting: {e}") from e

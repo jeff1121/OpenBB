@@ -13,8 +13,9 @@ from openbb_mcp_server.models.settings import MCPSettings
 
 @pytest.fixture(autouse=True)
 def _patch_transforms():
-    with patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()), patch(
-        "openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()
+    with (
+        patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()),
+        patch("openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()),
     ):
         yield
 
@@ -22,9 +23,7 @@ def _patch_transforms():
 @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
 @patch("openbb_mcp_server.app.app.CategoryIndex")
 @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-def test_load_prompts_from_json(
-    mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path
-):
+def test_load_prompts_from_json(mock_from_fastapi, mock_category_index, mock_process_routes, tmp_path):
     """Test that prompts are loaded correctly from a JSON file."""
     prompts_data = [
         {

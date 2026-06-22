@@ -22,9 +22,7 @@ class TokenAuthProvider(AuthProvider):
         uvicorn_config = settings.uvicorn_config or {}
         host = uvicorn_config.get("host", "127.0.0.1")
         port = uvicorn_config.get("port", "8001")
-        use_https = uvicorn_config.get("ssl_keyfile") and uvicorn_config.get(
-            "ssl_certfile"
-        )
+        use_https = uvicorn_config.get("ssl_keyfile") and uvicorn_config.get("ssl_certfile")
         scheme = "https" if use_https else "http"
         base_url = f"{scheme}://{host}:{port}"
 

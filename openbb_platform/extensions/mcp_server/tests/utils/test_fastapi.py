@@ -47,16 +47,12 @@ def test_get_module_exclusion_targets():
 
 def test_get_mcp_config():
     """Test retrieval and validation of MCP config from a route."""
-    valid_route = APIRoute(
-        "/", lambda: None, openapi_extra={"mcp_config": {"mcp_type": "tool"}}
-    )
+    valid_route = APIRoute("/", lambda: None, openapi_extra={"mcp_config": {"mcp_type": "tool"}})
     config = get_mcp_config(valid_route)
     assert config.mcp_type and config.mcp_type.value == "tool"
 
     # Test with x-mcp alias
-    x_mcp_route = APIRoute(
-        "/", lambda: None, openapi_extra={"x-mcp": {"mcp_type": "resource"}}
-    )
+    x_mcp_route = APIRoute("/", lambda: None, openapi_extra={"x-mcp": {"mcp_type": "resource"}})
     config = get_mcp_config(x_mcp_route)
     assert config.mcp_type and config.mcp_type.value == "resource"
 
@@ -204,9 +200,7 @@ def test_create_prompt_definitions_for_route():
                     {
                         "name": "complex_prompt",
                         "content": "Test with {param1}, {param2}, and {custom}",
-                        "arguments": [
-                            {"name": "custom", "type": "float", "default": 1.0}
-                        ],
+                        "arguments": [{"name": "custom", "type": "float", "default": 1.0}],
                         "tags": ["existing_tag"],
                     }
                 ]

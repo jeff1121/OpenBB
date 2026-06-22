@@ -38,23 +38,19 @@ class HTTPMethod(str, Enum):
 class ArgumentDefinitionModel(BaseModel):
     """用於驗證 prompt 參數定義的模型。"""
 
-    name: str = Field(..., description="Name of the argument")
-    type: str = Field(default="str", description="Type of the argument")
-    default: Any | None = Field(
-        default=None, description="Default value for the argument"
-    )
-    description: str | None = Field(
-        default=None, description="Description of the argument"
-    )
+    name: str = Field(..., description="參數名稱")
+    type: str = Field(default="str", description="參數型別")
+    default: Any | None = Field(default=None, description="參數預設值")
+    description: str | None = Field(default=None, description="參數描述")
 
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
         """驗證參數名稱是否為合法識別字。"""
         if not v:
-            raise ValueError("Argument name cannot be empty")
+            raise ValueError("參數名稱不可為空")
         if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", v):
-            raise ValueError(f"Argument name '{v}' must be a valid Python identifier")
+            raise ValueError(f"參數名稱 '{v}' 必須是合法的 Python 識別字")
         return v
 
     @field_validator("type")
@@ -75,43 +71,31 @@ class ArgumentDefinitionModel(BaseModel):
             "Any",
         }
         if v not in valid_types:
-            raise ValueError(
-                f"Type '{v}' not recognized. Valid types: {', '.join(sorted(valid_types))}"
-            )
+            raise ValueError(f"無法辨識型別 '{v}'。合法型別：{', '.join(sorted(valid_types))}")
         return v
 
 
 class PromptConfigModel(BaseModel):
     """用於驗證單一 prompt 設定的模型。"""
 
-    name: str | None = Field(
-        default=None, description="Name of the prompt (auto-generated if not provided)"
-    )
-    description: str | None = Field(
-        default=None, description="Description of the prompt"
-    )
-    content: str = Field(description="Template content with {variable} placeholders")
-    arguments: list[ArgumentDefinitionModel] = Field(
-        default_factory=list, description="Argument definitions for the prompt"
-    )
-    tags: list[str] = Field(
-        default_factory=list, description="Tags for categorizing the prompt"
-    )
+    name: str | None = Field(default=None, description="prompt 名稱；未提供時會自動產生")
+    description: str | None = Field(default=None, description="prompt 描述")
+    content: str = Field(description="包含 {variable} placeholders 的 template 內容")
+    arguments: list[ArgumentDefinitionModel] = Field(default_factory=list, description="prompt 的參數定義")
+    tags: list[str] = Field(default_factory=list, description="用於分類 prompt 的 tags")
 
     @field_validator("content")
     @classmethod
     def validate_content(cls, v: str) -> str:
         """驗證內容不為空，且包含合法的樣板語法。"""
         if not v.strip():
-            raise ValueError("Prompt content cannot be empty")
+            raise ValueError("Prompt 內容不可為空")
 
         # 檢查大括號是否成對
         open_braces = v.count("{")
         close_braces = v.count("}")
         if open_braces != close_braces:
-            raise ValueError(
-                f"Unmatched braces in prompt content: {open_braces} opening, {close_braces} closing"
-            )
+            raise ValueError(f"Prompt 內容的大括號未成對：{open_braces} 個左括號、{close_braces} 個右括號")
 
         return v
 
@@ -121,10 +105,10 @@ class PromptConfigModel(BaseModel):
         """若有提供 prompt 名稱，則驗證其合法性。"""
         if v is not None:
             if not v.strip():
-                raise ValueError("Prompt name cannot be empty string")
+                raise ValueError("Prompt 名稱不可為空字串")
             # 檢查是否為類似識別字的合法名稱
             if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", v.strip()):
-                raise ValueError(f"Prompt name '{v}' should be a valid identifier")
+                raise ValueError(f"Prompt 名稱 '{v}' 應為合法識別字")
         return v
 
     @field_validator("tags")
@@ -134,9 +118,9 @@ class PromptConfigModel(BaseModel):
         validated_tags = []
         for tag in v:
             if not isinstance(tag, str):
-                raise ValueError(f"Tag must be a string, got {type(tag)}")
+                raise ValueError(f"Tag 必須是字串，收到 {type(tag)}")
             if not tag.strip():
-                raise ValueError("Tag cannot be empty string")
+                raise ValueError("Tag 不可為空字串")
             validated_tags.append(tag.strip())
         return validated_tags
 
@@ -144,21 +128,11 @@ class PromptConfigModel(BaseModel):
 class MCPConfigModel(BaseModel):
     """用於驗證主要 MCP 組態結構的模型。"""
 
-    expose: bool | None = Field(
-        default=None, description="Whether to expose this route (False = exclude)."
-    )
-    mcp_type: MCPType | None = Field(
-        default=None, description="MCP type classification for the route."
-    )
-    methods: list[HTTPMethod] | None = Field(
-        default=None, description="HTTP methods to include for this route."
-    )
-    prompts: list[PromptConfigModel] = Field(
-        default_factory=list, description="Prompt configurations for this route."
-    )
-    exclude_args: list[str] | None = Field(
-        default=None, description="List of argument names to exclude from this route."
-    )
+    expose: bool | None = Field(default=None, description="是否曝露此路由；False 代表排除。")
+    mcp_type: MCPType | None = Field(default=None, description="此路由的 MCP 類型分類。")
+    methods: list[HTTPMethod] | None = Field(default=None, description="此路由要納入的 HTTP 方法。")
+    prompts: list[PromptConfigModel] = Field(default_factory=list, description="此路由的 prompt 設定。")
+    exclude_args: list[str] | None = Field(default=None, description="要從此路由排除的參數名稱清單。")
 
     @field_validator("methods", mode="before")
     @classmethod
@@ -172,11 +146,11 @@ class MCPConfigModel(BaseModel):
             v = [v]
 
         if not isinstance(v, list):
-            raise ValueError("methods must be a list of strings")
+            raise ValueError("methods 必須是字串清單")
 
         # 若包含 '*'，則它必須是唯一的方法
         if "*" in v and len(v) > 1:
-            raise ValueError("Method '*' cannot be mixed with other HTTP methods.")
+            raise ValueError("方法 '*' 不可與其他 HTTP 方法混用。")
 
         # 驗證每個方法
         validated_methods = []
@@ -186,9 +160,7 @@ class MCPConfigModel(BaseModel):
                 validated_methods.append(HTTPMethod(method_str))
             except ValueError as exc:
                 valid_methods = [m.value for m in HTTPMethod]
-                raise ValueError(
-                    f"Invalid HTTP method '{method}'. Valid methods: {', '.join(valid_methods)}"
-                ) from exc
+                raise ValueError(f"無效的 HTTP 方法 '{method}'。合法方法：{', '.join(valid_methods)}") from exc
 
         # 在保留順序的前提下移除重複值
         seen = set()
@@ -217,10 +189,8 @@ class MCPConfigModel(BaseModel):
 
             # 檢查是否有重複名稱
             if len(prompt_names) != len(set(prompt_names)):
-                duplicates = [
-                    name for name in prompt_names if prompt_names.count(name) > 1
-                ]
-                raise ValueError(f"Duplicate prompt names found: {set(duplicates)}")
+                duplicates = [name for name in prompt_names if prompt_names.count(name) > 1]
+                raise ValueError(f"發現重複的 prompt 名稱：{set(duplicates)}")
 
         return self
 
@@ -229,9 +199,7 @@ class MCPConfigModel(BaseModel):
         return self.model_dump(exclude_none=True)
 
 
-def validate_mcp_config(
-    config_dict: dict[str, Any], *, strict: bool = True
-) -> MCPConfigModel:
+def validate_mcp_config(config_dict: dict[str, Any], *, strict: bool = True) -> MCPConfigModel:
     """驗證 MCP 組態字典。
 
     參數
@@ -256,7 +224,7 @@ def validate_mcp_config(
     except Exception as exc:  # pylint: disable=broad-except
         if strict:
             raise exc from exc
-        logger.warning("MCP config validation failed ->", exc_info=exc)
+        logger.warning("MCP config 驗證失敗 ->", exc_info=exc)
         return MCPConfigModel()
 
 

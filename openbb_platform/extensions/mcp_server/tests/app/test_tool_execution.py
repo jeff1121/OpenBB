@@ -23,9 +23,7 @@ from openbb_mcp_server.models.settings import MCPSettings
 # Helpers
 # ---------------------------------------------------------------------------
 
-SKILLS_DIR = Path(__file__).resolve().parent.parent.parent / (
-    "openbb_mcp_server" + os.sep + "skills"
-)
+SKILLS_DIR = Path(__file__).resolve().parent.parent.parent / ("openbb_mcp_server" + os.sep + "skills")
 
 
 def _capture_decorated_tools(mock_mcp_instance):
@@ -92,8 +90,9 @@ def _build_server(
 
 @pytest.fixture(autouse=True)
 def _patch_transforms():
-    with patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()), patch(
-        "openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()
+    with (
+        patch("openbb_mcp_server.app.app.PromptsAsTools", new=MagicMock()),
+        patch("openbb_mcp_server.app.app.ResourcesAsTools", new=MagicMock()),
     ):
         yield
 
@@ -109,17 +108,13 @@ class TestAvailableCategories:
     def test_returns_categories_with_subcategories(self):
         """Return categories with their subcategories and tool counts."""
         index = CategoryIndex()
-        index.register(
-            category="equity", subcategory="price", tool_name="equity_price_historical"
-        )
+        index.register(category="equity", subcategory="price", tool_name="equity_price_historical")
         index.register(
             category="equity",
             subcategory="fundamental",
             tool_name="equity_fundamental_income",
         )
-        index.register(
-            category="economy", subcategory="general", tool_name="economy_cpi"
-        )
+        index.register(category="economy", subcategory="general", tool_name="economy_cpi")
 
         settings = MCPSettings(enable_tool_discovery=True)  # type: ignore
         _, decorated, _ = _build_server(settings, index=index)
@@ -234,9 +229,7 @@ class TestAvailableTools:
             ]
         )
 
-        result = await decorated["available_tools"](
-            category="equity", subcategory="price"
-        )
+        result = await decorated["available_tools"](category="equity", subcategory="price")
         names = {t.name for t in result}
         assert names == {"equity_price_historical", "equity_price_quote"}
 
@@ -251,9 +244,7 @@ class TestAvailableTools:
             ]
         )
 
-        result = await decorated["available_tools"](
-            category="equity", subcategory="price"
-        )
+        result = await decorated["available_tools"](category="equity", subcategory="price")
         by_name = {t.name: t for t in result}
         assert by_name["equity_price_historical"].active is True
         assert by_name["equity_price_quote"].active is False
@@ -269,32 +260,25 @@ class TestAvailableTools:
             ]
         )
 
-        result = await decorated["available_tools"](
-            category="equity", subcategory="price"
-        )
+        result = await decorated["available_tools"](category="equity", subcategory="price")
         by_name = {t.name: t for t in result}
         # Active tool gets live description
-        assert (
-            by_name["equity_price_historical"].description == "Get historical prices."
-        )
+        assert by_name["equity_price_historical"].description == "Get historical prices."
         # Inactive tool gets cached first-sentence from register()
-        assert (
-            by_name["equity_price_quote"].description
-            == "Get the latest quote for a stock."
-        )
+        assert by_name["equity_price_quote"].description == "Get the latest quote for a stock."
 
     @pytest.mark.asyncio
     async def test_unknown_category_raises(self):
-        """Raise ValueError when the requested category does not exist."""
+        """要求不存在的分類時應拋出 ValueError。"""
         mcp_mock, decorated = self._setup()
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(ValueError, match="找不到分類"):
             await decorated["available_tools"](category="nonexistent")
 
     @pytest.mark.asyncio
     async def test_unknown_subcategory_raises(self):
-        """Raise ValueError when the requested subcategory does not exist."""
+        """要求不存在的子分類時應拋出 ValueError。"""
         mcp_mock, decorated = self._setup()
-        with pytest.raises(ValueError, match="not found"):
+        with pytest.raises(ValueError, match="找不到子分類"):
             await decorated["available_tools"](category="equity", subcategory="options")
 
     @pytest.mark.asyncio
@@ -310,9 +294,7 @@ class TestAvailableTools:
             ]
         )
 
-        result = await decorated["available_tools"](
-            category="equity", subcategory="price"
-        )
+        result = await decorated["available_tools"](category="equity", subcategory="price")
         hist = next(t for t in result if t.name == "equity_price_historical")
         assert hist.description == "Get historical prices."
 
@@ -329,35 +311,23 @@ class TestAvailableTools:
             ]
         )
 
-        result = await decorated["available_tools"](
-            category="equity", subcategory="price"
-        )
+        result = await decorated["available_tools"](category="equity", subcategory="price")
         hist = next(t for t in result if t.name == "equity_price_historical")
-        assert (
-            hist.description
-            == "Get historical prices.\n\nThis returns OHLCV data with many parameters."
-        )
+        assert hist.description == "Get historical prices.\n\nThis returns OHLCV data with many parameters."
 
 
 class TestToggleTools:
-    """Tests for ``activate_tools``, ``deactivate_tools``, and ``activate_category``.
+    """測試 ``activate_tools``、``deactivate_tools`` 與 ``activate_category``。
 
-    These actually call the async closures with a mocked Context and verify
-    the return messages and that ctx.enable/disable_components was called
-    with the right arguments.
+    這些測試會以 mock Context 呼叫 async closures，
+    並驗證回傳訊息與 ctx.enable/disable_components 的呼叫參數。
     """
 
     def _setup(self):
         index = CategoryIndex()
-        index.register(
-            category="equity", subcategory="price", tool_name="equity_price_historical"
-        )
-        index.register(
-            category="equity", subcategory="price", tool_name="equity_price_quote"
-        )
-        index.register(
-            category="economy", subcategory="general", tool_name="economy_cpi"
-        )
+        index.register(category="equity", subcategory="price", tool_name="equity_price_historical")
+        index.register(category="equity", subcategory="price", tool_name="equity_price_quote")
+        index.register(category="economy", subcategory="general", tool_name="economy_cpi")
 
         settings = MCPSettings(enable_tool_discovery=True)  # type: ignore
         _, decorated, _ = _build_server(settings, index=index)
@@ -365,87 +335,77 @@ class TestToggleTools:
 
     @pytest.mark.asyncio
     async def test_activate_known_tools(self):
-        """Activate known tools and confirm ctx.enable_components is called."""
+        """啟用已知工具並確認 ctx.enable_components 被呼叫。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
-        msg = await decorated["activate_tools"](
-            tool_names=["equity_price_historical", "economy_cpi"], ctx=ctx
-        )
-        assert "Activated" in msg
+        msg = await decorated["activate_tools"](tool_names=["equity_price_historical", "economy_cpi"], ctx=ctx)
+        assert "已啟用" in msg
         assert "equity_price_historical" in msg
         assert "economy_cpi" in msg
-        ctx.enable_components.assert_awaited_once_with(
-            names={"equity_price_historical", "economy_cpi"}
-        )
+        ctx.enable_components.assert_awaited_once_with(names={"equity_price_historical", "economy_cpi"})
 
     @pytest.mark.asyncio
     async def test_activate_unknown_tools(self):
-        """Report not-found for unknown tool names, don't call enable."""
+        """未知工具名稱應回報找不到，且不呼叫 enable。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
         msg = await decorated["activate_tools"](tool_names=["nonexistent"], ctx=ctx)
-        assert "Not found" in msg
+        assert "找不到" in msg
         assert "nonexistent" in msg
         ctx.enable_components.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_activate_mixed_known_and_unknown(self):
-        """Report both activated and not-found in the same call."""
+        """同一次呼叫應同時回報已啟用與找不到。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
-        msg = await decorated["activate_tools"](
-            tool_names=["equity_price_historical", "nonexistent"], ctx=ctx
-        )
-        assert "Activated" in msg
-        assert "Not found" in msg
-        ctx.enable_components.assert_awaited_once_with(
-            names={"equity_price_historical"}
-        )
+        msg = await decorated["activate_tools"](tool_names=["equity_price_historical", "nonexistent"], ctx=ctx)
+        assert "已啟用" in msg
+        assert "找不到" in msg
+        ctx.enable_components.assert_awaited_once_with(names={"equity_price_historical"})
 
     @pytest.mark.asyncio
     async def test_activate_empty_list(self):
-        """Empty tool list returns 'No tools processed.'"""
+        """空工具清單應回傳未處理訊息。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
         msg = await decorated["activate_tools"](tool_names=[], ctx=ctx)
-        assert msg == "No tools processed."
+        assert msg == "沒有處理任何工具。"
         ctx.enable_components.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_deactivate_known_tools(self):
-        """Deactivate known tools and confirm ctx.disable_components is called."""
+        """停用已知工具並確認 ctx.disable_components 被呼叫。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
-        msg = await decorated["deactivate_tools"](
-            tool_names=["equity_price_quote"], ctx=ctx
-        )
-        assert "Deactivated" in msg
+        msg = await decorated["deactivate_tools"](tool_names=["equity_price_quote"], ctx=ctx)
+        assert "已停用" in msg
         assert "equity_price_quote" in msg
         ctx.disable_components.assert_awaited_once_with(names={"equity_price_quote"})
 
     @pytest.mark.asyncio
     async def test_deactivate_unknown_tools(self):
-        """Report not-found for unknown tool names, don't call disable."""
+        """未知工具名稱應回報找不到，且不呼叫 disable。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
         msg = await decorated["deactivate_tools"](tool_names=["fake"], ctx=ctx)
-        assert "Not found" in msg
+        assert "找不到" in msg
         ctx.disable_components.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_activate_category_all(self):
-        """Activate all tools in a category."""
+        """啟用某分類中的所有工具。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
         msg = await decorated["activate_category"](category="equity", ctx=ctx)
-        assert "Activated 2 tools" in msg
+        assert "啟用 2 個工具" in msg
         assert "equity_price_historical" in msg
         assert "equity_price_quote" in msg
         ctx.enable_components.assert_awaited_once()
@@ -454,36 +414,32 @@ class TestToggleTools:
 
     @pytest.mark.asyncio
     async def test_activate_category_with_subcategory(self):
-        """Activate only tools in a specific subcategory."""
+        """只啟用特定子分類中的工具。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
-        msg = await decorated["activate_category"](
-            category="equity", subcategory="price", ctx=ctx
-        )
-        assert "Activated 2 tools" in msg
+        msg = await decorated["activate_category"](category="equity", subcategory="price", ctx=ctx)
+        assert "啟用 2 個工具" in msg
         ctx.enable_components.assert_awaited_once()
 
     @pytest.mark.asyncio
     async def test_activate_category_unknown_raises(self):
-        """Raise ValueError for unknown category."""
+        """未知分類應拋出 ValueError。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
-        with pytest.raises(ValueError, match="No tools found"):
+        with pytest.raises(ValueError, match="找不到工具"):
             await decorated["activate_category"](category="nonexistent", ctx=ctx)
         ctx.enable_components.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_activate_category_unknown_subcategory_raises(self):
-        """Raise ValueError for unknown subcategory within a valid category."""
+        """合法分類中的未知子分類應拋出 ValueError。"""
         decorated = self._setup()
         ctx = _make_mock_context()
 
-        with pytest.raises(ValueError, match="No tools found"):
-            await decorated["activate_category"](
-                category="equity", subcategory="options", ctx=ctx
-            )
+        with pytest.raises(ValueError, match="找不到工具"):
+            await decorated["activate_category"](category="equity", subcategory="options", ctx=ctx)
         ctx.enable_components.assert_not_awaited()
 
     def test_discovery_tools_not_registered_when_disabled(self):
@@ -548,9 +504,7 @@ class TestTransformsAdded:
 
         # Find the StaticPrompt among add_prompt calls
         added_prompts = [
-            call[0][0]
-            for call in mock_mcp.add_prompt.call_args_list
-            if isinstance(call[0][0], StaticPrompt)
+            call[0][0] for call in mock_mcp.add_prompt.call_args_list if isinstance(call[0][0], StaticPrompt)
         ]
         assert len(added_prompts) == 1
         assert added_prompts[0].argument_defaults == {"aspect": "fundamentals"}
@@ -588,9 +542,7 @@ class TestTransformsAdded:
             argument_defaults={"aspect": "fundamentals"},
         )
 
-        rendered = await prompt.render(
-            arguments={"name": "AAPL", "aspect": "technicals"}
-        )
+        rendered = await prompt.render(arguments={"name": "AAPL", "aspect": "technicals"})
         assert rendered[0].content.text == "Hello AAPL, focus on technicals"
 
 
@@ -603,10 +555,10 @@ class TestBundledSkillRendering:
     """Verify each real skill file renders through StaticPrompt without error."""
 
     EXPECTED_SKILLS = {
-        "develop_extension": "Build an OpenBB Platform Extension",
-        "build_workspace_app": "Build and Run OpenBB Workspace Applications",
-        "configure_mcp_server": "Configure and Build the OpenBB MCP Server",
-        "work_with_server": "Working With the OpenBB MCP Server",
+        "develop_extension": "建立 OpenBB Platform 擴充套件",
+        "build_workspace_app": "建置並執行 OpenBB Workspace 應用程式",
+        "configure_mcp_server": "設定並建置 OpenBB MCP 伺服器",
+        "work_with_server": "使用 OpenBB MCP Server",
     }
 
     def test_skills_directory_exists(self):
@@ -615,11 +567,7 @@ class TestBundledSkillRendering:
 
     def test_all_expected_skills_present(self):
         """Confirm all expected skill subdirectories with SKILL.md are present."""
-        skill_dirs = {
-            d.name
-            for d in SKILLS_DIR.iterdir()
-            if d.is_dir() and (d / "SKILL.md").exists()
-        }
+        skill_dirs = {d.name for d in SKILLS_DIR.iterdir() if d.is_dir() and (d / "SKILL.md").exists()}
         for name in self.EXPECTED_SKILLS:
             assert name in skill_dirs, f"Missing skill subdirectory: {name}/SKILL.md"
 
@@ -667,13 +615,13 @@ class TestBundledSkillRendering:
             arguments=None,
             tags={"skill"},
         )
-        # This would raise KeyError if str.format() is incorrectly applied
+        # 若錯誤套用 str.format()，這裡會拋出 KeyError
         rendered = await prompt.render()
         assert rendered[0].content.text == content
 
     @pytest.mark.asyncio
     async def test_skill_render_with_empty_arguments(self):
-        """Passing empty dict as arguments should still bypass str.format."""
+        """傳入空字典 arguments 時仍應略過 str.format。"""
         skill_file = SKILLS_DIR / "develop_extension" / "SKILL.md"
         content = skill_file.read_text(encoding="utf-8")
 
@@ -684,16 +632,16 @@ class TestBundledSkillRendering:
             arguments=None,
             tags={"skill"},
         )
-        # Explicit empty dict should also be safe
+        # 明確傳入空字典也應安全
         rendered = await prompt.render(arguments={})
         assert rendered[0].content.text == content
 
     def test_skill_description_from_first_heading(self):
-        """Verify that each SKILL.md has the expected markdown heading (after YAML frontmatter)."""
+        """確認每個 SKILL.md 在 YAML frontmatter 後有預期標題。"""
         for skill_name, expected_heading in self.EXPECTED_SKILLS.items():
             skill_file = SKILLS_DIR / skill_name / "SKILL.md"
             content = skill_file.read_text(encoding="utf-8")
-            # Skip YAML frontmatter block (--- ... ---)
+            # 略過 YAML frontmatter 區塊（--- ... ---）
             lines = content.splitlines()
             in_frontmatter = lines[0].strip() == "---" if lines else False
             heading = ""
@@ -706,29 +654,27 @@ class TestBundledSkillRendering:
                 if not in_frontmatter and line.startswith("#"):
                     heading = line.lstrip("# ").strip()
                     break
-            assert (
-                heading == expected_heading
-            ), f"Skill '{skill_name}' heading mismatch: got '{heading}', expected '{expected_heading}'"
+            assert heading == expected_heading, (
+                f"Skill '{skill_name}' heading mismatch: got '{heading}', expected '{expected_heading}'"
+            )
 
 
 # ===================================================================
-# Integration: skills loaded and accessible via prompt tools
+# 整合測試：skills 已載入且可透過 prompt 工具存取
 # ===================================================================
 
 
 class TestSkillsIntegration:
-    """Test skills loading end-to-end through create_mcp_server."""
+    """透過 create_mcp_server 端到端測試 skills 載入。"""
 
     @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
     @patch("openbb_mcp_server.app.app.CategoryIndex")
     @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-    def test_bundled_skills_registered_via_provider(
-        self, mock_from_fastapi, mock_category_index, mock_process_routes
-    ):
-        """Bundled skills are registered via mcp.add_provider(SkillsDirectoryProvider)."""
+    def test_bundled_skills_registered_via_provider(self, mock_from_fastapi, mock_category_index, mock_process_routes):
+        """內建 skills 會透過 mcp.add_provider 註冊。"""
         from fastmcp.server.providers.skills import SkillsDirectoryProvider
 
-        settings = MCPSettings()  # type: ignore  (uses default skills dir)
+        settings = MCPSettings()  # type: ignore[call-arg]  # 使用預設 skills 目錄
         fastapi_app = FastAPI()
 
         mock_processed_data = MagicMock()
@@ -752,9 +698,7 @@ class TestSkillsIntegration:
     @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
     @patch("openbb_mcp_server.app.app.CategoryIndex")
     @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-    def test_skill_md_files_have_content(
-        self, mock_from_fastapi, mock_category_index, mock_process_routes
-    ):
+    def test_skill_md_files_have_content(self, mock_from_fastapi, mock_category_index, mock_process_routes):
         """Each bundled SKILL.md file has non-trivial content."""
         for skill_name in [
             "develop_extension",
@@ -765,16 +709,12 @@ class TestSkillsIntegration:
             skill_file = SKILLS_DIR / skill_name / "SKILL.md"
             assert skill_file.exists(), f"Missing: {skill_file}"
             content = skill_file.read_text(encoding="utf-8")
-            assert (
-                len(content) > 500
-            ), f"Skill '{skill_name}' SKILL.md is suspiciously short ({len(content)} chars)"
+            assert len(content) > 500, f"Skill '{skill_name}' SKILL.md is suspiciously short ({len(content)} chars)"
 
     @patch("openbb_mcp_server.app.app.process_fastapi_routes_for_mcp")
     @patch("openbb_mcp_server.app.app.CategoryIndex")
     @patch("openbb_mcp_server.app.app.FastMCP.from_fastapi")
-    def test_no_skill_prompts_registered(
-        self, mock_from_fastapi, mock_category_index, mock_process_routes
-    ):
+    def test_no_skill_prompts_registered(self, mock_from_fastapi, mock_category_index, mock_process_routes):
         """Skills are no longer registered as prompts with the 'skill' tag."""
         settings = MCPSettings()  # type: ignore
         fastapi_app = FastAPI()
@@ -794,10 +734,8 @@ class TestSkillsIntegration:
         create_mcp_server(settings, fastapi_app)
 
         skill_prompt_calls = [
-            c
-            for c in mock_mcp_instance.add_prompt.call_args_list
-            if hasattr(c[0][0], "tags") and "skill" in c[0][0].tags
+            c for c in mock_mcp_instance.add_prompt.call_args_list if hasattr(c[0][0], "tags") and "skill" in c[0][0].tags
         ]
-        assert (
-            skill_prompt_calls == []
-        ), "Skills should not be registered as prompts in FastMCP v3 — use add_provider instead"
+        assert skill_prompt_calls == [], (
+            "Skills should not be registered as prompts in FastMCP v3 — use add_provider instead"
+        )

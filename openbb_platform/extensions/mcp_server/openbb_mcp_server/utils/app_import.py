@@ -71,9 +71,7 @@ def import_app(app_path: str, name: str = "app", factory: bool = False) -> FastA
         module = _load_module_from_file_path(app_path)
 
     if not hasattr(module, name):
-        raise AttributeError(
-            f"Error: The app file '{app_path}' does not contain an '{name}' instance"
-        )
+        raise AttributeError(f"Error: The app file '{app_path}' does not contain an '{name}' instance")
 
     app_or_factory = getattr(module, name)
 
@@ -95,9 +93,7 @@ def import_app(app_path: str, name: str = "app", factory: bool = False) -> FastA
         app = app_or_factory
 
     if not isinstance(app, FastAPI):
-        raise TypeError(
-            f"Error: The {name} instance in '{app_path}' is not an instance of FastAPI"
-        )
+        raise TypeError(f"Error: The {name} instance in '{app_path}' is not an instance of FastAPI")
 
     return app
 
@@ -197,15 +193,8 @@ def parse_args():
                             value.startswith("[") and value.endswith("]")
                         ):
                             _kwargs[key] = json.loads(value)
-                        elif (
-                            key != "app"
-                            and ":" in value
-                            and all(":" in part for part in value.split(","))
-                        ):
-                            _kwargs[key] = {
-                                k.strip(): v.strip()
-                                for k, v in (p.split(":", 1) for p in value.split(","))
-                            }
+                        elif key != "app" and ":" in value and all(":" in part for part in value.split(",")):
+                            _kwargs[key] = {k.strip(): v.strip() for k, v in (p.split(":", 1) for p in value.split(","))}
                         else:
                             _kwargs[key] = value
                     except (json.JSONDecodeError, ValueError):
