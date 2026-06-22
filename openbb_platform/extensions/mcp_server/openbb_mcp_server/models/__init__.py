@@ -1,1 +1,1 @@
-"""OpenBB MCP Server Models."""
+"""OpenBB MCP Server 模型。"""

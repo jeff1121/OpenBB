@@ -1,4 +1,4 @@
-"""App import utilities for MCP Server."""
+"""MCP Server 的應用程式匯入工具。"""
 
 import json
 import os
@@ -9,23 +9,23 @@ from fastapi import FastAPI
 
 
 def import_app(app_path: str, name: str = "app", factory: bool = False) -> FastAPI:
-    """Import the FastAPI app instance from a local file or module."""
+    """從本機檔案或模組匯入 FastAPI app 實例。"""
     # pylint: disable=import-outside-toplevel
     from importlib import import_module, util
 
     def _is_module_colon_notation(app_path: str) -> bool:
-        """Check if the path uses module:name notation vs a Windows path."""
+        """檢查路徑是否使用 module:name 表示法，而非 Windows 路徑。"""
         if ":" not in app_path:
             return False
-        # Windows absolute path check (e.g., C:\path or D:/path)
+        # Windows 絕對路徑檢查（例如 C:\path 或 D:/path）
         if len(app_path) >= 2 and app_path[1] == ":" and app_path[0].isalpha():
-            # Could still have colon notation: C:\path\file.py:app
+            # 仍可能是 colon 表示法：C:\path\file.py:app
             parts = app_path.split(":")
-            return len(parts) > 2  # More than just drive letter colon
+            return len(parts) > 2  # 不只是磁碟代號的冒號
         return True
 
     def _load_module_from_file_path(file_path: str):
-        """Load a Python module from a file path."""
+        """從檔案路徑載入 Python 模組。"""
         spec_name = os.path.basename(file_path).split(".")[0]
         spec = util.spec_from_file_location(spec_name, file_path)
 
@@ -37,12 +37,12 @@ def import_app(app_path: str, name: str = "app", factory: bool = False) -> FastA
         spec.loader.exec_module(module)  # type: ignore
         return module
 
-    # Case 1: Module path with colon notation (e.g., "my_app.main:app" or "main:app")
+    # 情況 1：使用 colon 表示法的模組路徑（例如 "my_app.main:app" 或 "main:app"）
     if _is_module_colon_notation(app_path):
         module_path, name = app_path.rsplit(":", 1)
-        try:  # First try to import as a module
+        try:  # 先嘗試以模組方式匯入
             module = import_module(module_path)
-        except ImportError:  # If module import fails, try to load as a local file
+        except ImportError:  # 若模組匯入失敗，再改用本機檔案載入
             if not module_path.endswith(".py"):
                 module_path += ".py"
 
@@ -59,7 +59,7 @@ def import_app(app_path: str, name: str = "app", factory: bool = False) -> FastA
 
             module = _load_module_from_file_path(file_path)
 
-    # Case 2: File path (e.g., "main.py" or "my_app/main.py")
+    # 情況 2：檔案路徑（例如 "main.py" 或 "my_app/main.py"）
     else:
         if not Path(app_path).is_absolute():
             cwd = Path.cwd()
@@ -77,9 +77,9 @@ def import_app(app_path: str, name: str = "app", factory: bool = False) -> FastA
 
     app_or_factory = getattr(module, name)
 
-    # Here we use the same approach as uvicorn to handle factory functions.
-    # This prevents us from relying on explicit type annotations.
-    # See: https://github.com/encode/uvicorn/blob/master/uvicorn/config.py
+    # 這裡採用與 uvicorn 相同的方式處理 factory function，
+    # 避免依賴明確的型別註記。
+    # 參考：https://github.com/encode/uvicorn/blob/master/uvicorn/config.py
     try:
         app = app_or_factory()
         if not factory:
@@ -104,72 +104,72 @@ def import_app(app_path: str, name: str = "app", factory: bool = False) -> FastA
 
 cl_doc = """OpenBB MCP Server
 
-Usage:
+用法：
     >>> python -m openbb_mcp_server [OPTIONS]
 
     >>> openbb-mcp --app ./some_app.py --host 0.0.0.0 --port 8005
 
-Description:
-    The OpenBB MCP Server is a component of the OpenBB Platform that provides
-    a server for the Model-Context-Protocol. REST endpoints are converted into
-    tools and made available to connected clients.
+說明：
+    OpenBB MCP Server 是 OpenBB Platform 的組件之一，
+    提供 Model Context Protocol（MCP）伺服器。
+    REST 端點會被轉換成工具，並提供給已連線的客戶端使用。
 
-    Settings can be defined in the configuration file, `~/.openbb_platform/mcp_settings.json`.
+    設定可定義於 `~/.openbb_platform/mcp_settings.json` 組態檔中。
 
-    Alternatively, they can be defined as environment variables, with key values prefaced with `OPENBB_MCP_`
+    也可以透過環境變數設定，鍵名需以 `OPENBB_MCP_` 為前綴。
 
-Options:
+選項：
     --help
-        Show this help message and exit.
+        顯示此說明並結束。
 
     --app <app_path>
-        The path to the FastAPI app instance. This can be in the format
-        'module.path:app_instance' or a file path 'path/to/app.py'.
-        If not provided, the server will run with the default built-in app.
+        FastAPI app 實例的路徑。
+        可使用 'module.path:app_instance' 或 'path/to/app.py' 格式。
+        若未提供，伺服器會使用內建預設 app 啟動。
 
     --name <name>
-        The name of the FastAPI app instance or factory function in the app file.
-        Defaults to 'app'.
+        app 檔案中 FastAPI 實例或 factory function 的名稱。
+        預設為 'app'。
 
     --factory
-        If set, the app is treated as a factory function that will be called
-        to create the FastAPI app instance.
+        若設定此旗標，會將 app 視為 factory function，
+        並呼叫它來建立 FastAPI app 實例。
 
     --host <host>
-        The host to bind the server to. Defaults to '127.0.0.1'.
-        This is a uvicorn argument.
+        伺服器要綁定的 host。預設為 '127.0.0.1'。
+        這是 uvicorn 參數。
 
     --port <port>
-        The port to bind the server to. Defaults to 8000.
-        This is a uvicorn argument.
+        伺服器要綁定的 port。預設為 8001。
+        這是 uvicorn 參數。
 
     --transport <transport>
-        The transport mechanism to use for the MCP server.
-        Defaults to 'streamable-http'.
+        MCP 伺服器使用的傳輸機制。
+        預設為 'streamable-http'。
 
     --allowed-categories <categories>
-        A comma-separated list of tool categories to allow.
-        If not provided, all categories are allowed.
+        允許使用的工具分類，使用逗號分隔。
+        若未提供，則允許所有分類。
 
     --default-categories <categories>
-        A comma-separated list of tool categories to be enabled by default.
-        Defaults to 'all'.
+        預設啟用的工具分類，使用逗號分隔。
+        預設為 'all'。
 
     --tool-discovery
-        If set, tool discovery will be enabled.
+        若設定此旗標，會啟用工具探索。
 
     --system-prompt <path>
-        Path to a TXT file with the system prompt.
+        系統 prompt 的 TXT 檔案路徑。
 
     --server-prompts <path>
-        Path to a JSON file with a list of server prompts.
+        包含 server prompts 清單的 JSON 檔案路徑。
 
-All other arguments are passed through as MCPSettings.
+其他所有參數都會作為 MCPSettings 傳入。
 """
 
 
 def parse_args():
-    """Parse command line arguments."""
+    """解析命令列參數。"""
     # pylint: disable=import-outside-toplevel
     from openbb_core.env import Env
 
@@ -178,7 +178,7 @@ def parse_args():
     args = sys.argv[1:].copy()
     _kwargs: dict = {}
 
-    # Parse all command line arguments into kwargs
+    # 將所有命令列參數解析為 kwargs
     for i, arg in enumerate(args):
         if arg == "--help":
             print(cl_doc)  # noqa: T201
@@ -213,7 +213,7 @@ def parse_args():
             else:
                 _kwargs[key] = True
 
-    # Extract and handle app import arguments
+    # 擷取並處理 app 匯入相關參數
     _app_path = _kwargs.pop("app", None)
     _name = _kwargs.pop("name", "app")
     _factory = _kwargs.pop("factory", False)
@@ -230,7 +230,7 @@ def parse_args():
             )
         imported_app = import_app(_app_path, _name, _factory)
 
-    # Extract MCP-specific arguments
+    # 擷取 MCP 專用參數
     transport = _kwargs.pop("transport", "streamable-http")
     allowed_categories = _kwargs.pop("allowed_categories", None)
     default_categories = _kwargs.pop("default_categories", "all")
@@ -239,10 +239,10 @@ def parse_args():
     server_prompts = _kwargs.pop("server_prompts", None)
 
     class Args:
-        """Container for parsed command line arguments."""
+        """已解析命令列參數的容器。"""
 
         def __init__(self):
-            """Initialize the Args container."""
+            """初始化 Args 容器。"""
             self.imported_app = imported_app
             self.transport = transport
             self.allowed_categories = allowed_categories
@@ -250,6 +250,6 @@ def parse_args():
             self.tool_discovery = tool_discovery
             self.system_prompt = system_prompt
             self.server_prompts = server_prompts
-            self.uvicorn_config = _kwargs  # All remaining kwargs go to uvicorn
+            self.uvicorn_config = _kwargs  # 其餘 kwargs 全部交給 uvicorn
 
     return Args()

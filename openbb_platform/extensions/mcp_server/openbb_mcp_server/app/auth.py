@@ -1,4 +1,4 @@
-"""Custom authentication for the MCP server."""
+"""MCP 伺服器的自訂驗證。"""
 
 import base64
 import binascii
@@ -13,10 +13,10 @@ from openbb_mcp_server.models.settings import MCPSettings
 
 
 class TokenAuthProvider(AuthProvider):
-    """Token authentication provider for basic authentication via Bearer tokens."""
+    """以 Bearer token 實作基本驗證的 token 驗證提供者。"""
 
     def __init__(self, settings: MCPSettings):
-        """Initialize the token auth provider."""
+        """初始化 token 驗證提供者。"""
         super().__init__()
         self.server_auth = settings.server_auth
         uvicorn_config = settings.uvicorn_config or {}
@@ -33,7 +33,7 @@ class TokenAuthProvider(AuthProvider):
         self.token_url = f"{base_url}/mcp/token"
 
     async def authorize(self, request: Request) -> bool:
-        """Authorize the request."""
+        """授權請求。"""
         if not self.server_auth:
             return True
 
@@ -76,7 +76,7 @@ class TokenAuthProvider(AuthProvider):
         return True
 
     async def verify_token(self, token: str) -> AccessToken | None:
-        """Verify the token."""
+        """驗證 token。"""
         if not self.server_auth:
             return None
 
@@ -106,5 +106,5 @@ class TokenAuthProvider(AuthProvider):
 
 
 def get_auth_provider(settings: MCPSettings) -> TokenAuthProvider:
-    """Get the authentication provider."""
+    """取得驗證提供者。"""
     return TokenAuthProvider(settings)

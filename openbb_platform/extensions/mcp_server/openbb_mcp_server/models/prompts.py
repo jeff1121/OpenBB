@@ -1,4 +1,4 @@
-"""Custom Prompt classes for FastMCP."""
+"""FastMCP 的自訂 Prompt 類別。"""
 
 from typing import Any
 
@@ -8,7 +8,7 @@ from mcp.types import PromptMessage, TextContent
 
 
 class StaticPrompt(Prompt):
-    """A prompt that is a static string template."""
+    """以靜態字串樣板為基礎的 prompt。"""
 
     content: str
     argument_defaults: dict[str, Any] = {}
@@ -17,11 +17,11 @@ class StaticPrompt(Prompt):
         self,
         arguments: dict[str, Any] | None = None,
     ) -> list[PromptMessage]:
-        """Render the prompt with arguments."""
-        # Start with stored defaults, then overlay caller-supplied values
+        """使用參數渲染 prompt。"""
+        # 先套用預設值，再覆蓋呼叫端提供的值
         args = {**self.argument_defaults, **(arguments or {})}
 
-        # Validate required arguments
+        # 驗證必要參數
         if self.arguments:
             required = {arg.name for arg in self.arguments if arg.required}
             provided = set(args)

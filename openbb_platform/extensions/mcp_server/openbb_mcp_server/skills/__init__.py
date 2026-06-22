@@ -1,1 +1,1 @@
-"""Bundled MCP skill prompts."""
+"""內建的 MCP 技能提示。"""

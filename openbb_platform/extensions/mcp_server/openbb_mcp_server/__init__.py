@@ -1,1 +1,1 @@
-"""OpenBB MCP Server package."""
+"""OpenBB MCP Server 套件。"""

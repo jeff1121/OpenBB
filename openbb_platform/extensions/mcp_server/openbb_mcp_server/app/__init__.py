@@ -1,1 +1,1 @@
-"""OpenBB MCP Server App Module."""
+"""OpenBB MCP Server 應用程式模組。"""

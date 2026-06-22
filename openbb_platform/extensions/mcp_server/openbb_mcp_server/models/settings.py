@@ -1,4 +1,4 @@
-"""MCP Server Settings model."""
+"""MCP Server 設定模型。"""
 
 import json
 from pathlib import Path
@@ -12,7 +12,7 @@ DuplicateBehavior = Literal["warn", "error", "replace", "ignore"]
 
 
 class MCPSettings(BaseModel):
-    """MCP Server settings model."""
+    """MCP Server 設定模型。"""
 
     model_config = ConfigDict(
         validate_by_name=True,
@@ -22,14 +22,14 @@ class MCPSettings(BaseModel):
         extra="allow",
     )
 
-    # ===== Basic OpenBB MCP Configuration =====
+    # ===== OpenBB MCP 基本設定 =====
     api_prefix: str | None = Field(
         default=None,
         description="If set, overrides the API prefix from SystemService. For testing or special cases.",
         alias="OPENBB_MCP_API_PREFIX",
     )
 
-    # Basic server configuration
+    # 基本伺服器設定
     name: str = Field(
         default="OpenBB MCP",
         alias="OPENBB_MCP_NAME",
@@ -46,7 +46,7 @@ the exact same operations available to REST clients.""",
         alias="OPENBB_MCP_VERSION",
     )
 
-    # Tool category filtering
+    # 工具分類篩選
     default_tool_categories: list[str] = Field(
         default_factory=lambda: ["all"],
         description="Default active tool categories on startup",
@@ -58,7 +58,7 @@ the exact same operations available to REST clients.""",
         alias="OPENBB_MCP_ALLOWED_TOOL_CATEGORIES",
     )
 
-    # Tool discovery configuration
+    # 工具探索設定
     enable_tool_discovery: bool = Field(
         default=False,
         description="""
@@ -68,7 +68,7 @@ the exact same operations available to REST clients.""",
         alias="OPENBB_MCP_ENABLE_TOOL_DISCOVERY",
     )
 
-    # Pagination configuration
+    # 分頁設定
     list_page_size: int | None = Field(
         default=None,
         description="Maximum number of tools/resources/prompts returned per page in list responses. "
@@ -76,14 +76,14 @@ the exact same operations available to REST clients.""",
         alias="OPENBB_MCP_LIST_PAGE_SIZE",
     )
 
-    # Response configuration
+    # 回應設定
     describe_responses: bool = Field(
         default=False,
         description="Include response types in tool descriptions",
         alias="OPENBB_MCP_DESCRIBE_RESPONSES",
     )
 
-    # Prompt configuration
+    # Prompt 設定
     instructions: str | None = Field(
         default=None,
         description="Server instructions sent to the agent during the MCP initialize handshake."
@@ -111,16 +111,16 @@ the exact same operations available to REST clients.""",
         alias="OPENBB_MCP_DEFAULT_SKILLS_DIR",
     )
 
-    # ===== FastMCP Core Configuration =====
+    # ===== FastMCP 核心設定 =====
 
-    # Cache configuration
+    # 快取設定
     cache_expiration_seconds: float | None = Field(
         default=None,
         description="Cache expiration time in seconds. set to 0 to disable caching.",
         alias="OPENBB_MCP_CACHE_EXPIRATION_SECONDS",
     )
 
-    # Duplicate handling
+    # 重複項處理
     on_duplicate_tools: DuplicateBehavior | None = Field(
         default=None,
         description="Behavior when duplicate tools are registered",
@@ -139,7 +139,7 @@ the exact same operations available to REST clients.""",
         alias="OPENBB_MCP_ON_DUPLICATE_PROMPTS",
     )
 
-    # Resource and component configuration
+    # Resource 與元件設定
     resource_prefix_format: Literal["protocol", "path"] | None = Field(
         default=None,
         description="Format for resource URI prefixes: 'protocol' (prefix+protocol://path) or 'path' (protocol://prefix/path)",
@@ -182,9 +182,9 @@ the exact same operations available to REST clients.""",
         description="If True, show deprecation warnings in the console.",
     )
 
-    # ===== HTTP Transport Configuration =====
+    # ===== HTTP 傳輸設定 =====
 
-    # Uvicorn server configuration
+    # Uvicorn 伺服器設定
     uvicorn_config: dict[str, Any] | None = Field(
         default_factory=lambda: {"host": "127.0.0.1", "port": "8001"},
         description="Additional configuration object for the Uvicorn server."
@@ -192,7 +192,7 @@ the exact same operations available to REST clients.""",
         alias="OPENBB_MCP_UVICORN_CONFIG",
     )
 
-    # HTTP client configuration for outbound requests
+    # 對外請求用的 HTTP client 設定
     httpx_client_kwargs: dict[str, Any] | None = Field(
         default_factory=dict,
         description="Configuration object for async httpx client used by FastMCP."
@@ -235,23 +235,21 @@ the exact same operations available to REST clients.""",
     @field_validator("httpx_client_kwargs", "client_auth", "server_auth", mode="before")
     @classmethod
     def _validate_json_or_tuple(cls, v):
-        """Validate json or tuple."""
+        """驗證 JSON 或 tuple。"""
         if isinstance(v, str):
             if not v.strip():
                 return None
             try:
                 return json.loads(v)
             except json.JSONDecodeError:
-                # Fallback for simple string if not valid JSON
+                # 若不是合法 JSON，退回原始字串
                 return v
         return v
 
     def get_fastmcp_kwargs(self) -> dict:
-        """
-        Extract FastMCP constructor arguments from the settings.
+        """從設定中擷取 FastMCP 建構子參數。
 
-        Returns a dictionary containing only the non-None FastMCP parameters
-        that can be passed directly to the FastMCP constructor.
+        只回傳可直接傳給 FastMCP 建構子的非 None 參數。
         """
         fastmcp_fields = {
             "name": self.name,
@@ -267,14 +265,13 @@ the exact same operations available to REST clients.""",
             "list_page_size": self.list_page_size,
         }
 
-        # Only include non-None values
+        # 只保留非 None 的值
         return {k: v for k, v in fastmcp_fields.items() if v is not None}
 
     def get_http_run_kwargs(self) -> dict:
-        """
-        Extract HTTP runtime arguments for FastMCP.run_http_async() method.
+        """擷取 FastMCP.run_http_async() 所需的 HTTP 執行參數。
 
-        Returns a dictionary containing HTTP transport settings.
+        回傳包含 HTTP 傳輸設定的字典。
         """
         run_fields: dict = {}
 
@@ -284,10 +281,9 @@ the exact same operations available to REST clients.""",
         return run_fields
 
     def get_httpx_kwargs(self) -> dict:
-        """
-        Extract httpx client configuration.
+        """擷取 httpx client 設定。
 
-        Returns a dictionary containing httpx client settings.
+        回傳包含 httpx client 設定的字典。
         """
         kwargs = self.httpx_client_kwargs or {}
         if self.client_auth:
@@ -295,11 +291,11 @@ the exact same operations available to REST clients.""",
         return kwargs
 
     def __repr__(self) -> str:
-        """Return string representation."""
+        """回傳字串表示。"""
         return f"{self.__class__.__name__}\n\n" + "\n".join(
             f"{k}: {v}" for k, v in self.model_dump().items()
         )
 
     def update(self, incoming: "MCPSettings"):
-        """Update current settings."""
+        """更新目前設定。"""
         self.__dict__.update(incoming.model_dump(exclude_none=True))

@@ -1,4 +1,4 @@
-"""Utilities for handling FastAPI routes."""
+"""處理 FastAPI 路由的工具函式。"""
 
 import inspect
 import re
@@ -16,10 +16,10 @@ from openbb_mcp_server.models.settings import MCPSettings
 
 
 class ProcessedRouteData:
-    """Container for all data collected during route processing."""
+    """保存路由處理期間蒐集到的所有資料。"""
 
     def __init__(self):
-        """Initialize with empty lists and dictionaries."""
+        """以空的串列與字典初始化。"""
         self.route_maps: list[RouteMap] = []
         self.route_lookup: dict[tuple[str, str], APIRoute] = {}
         self.removed_routes: list[APIRoute] = []
@@ -27,7 +27,10 @@ class ProcessedRouteData:
 
 
 def get_api_prefix(settings: MCPSettings | None) -> str:
-    """Get normalized API prefix (leading slash, no trailing slash). Prefer settings.api_prefix if present."""
+    """取得正規化後的 API prefix（前有斜線、後無斜線）。
+
+    若有提供 `settings.api_prefix`，則優先使用。
+    """
     override = getattr(settings, "api_prefix", None)
     if isinstance(override, str) and override.strip():
         prefix = override
@@ -40,10 +43,13 @@ def get_api_prefix(settings: MCPSettings | None) -> str:
 
 
 def _get_module_exclusion_targets(settings: MCPSettings | None) -> dict[str, str]:
-    """Map path segment -> module name. Prefer settings.module_exclusion_map if a dict is provided."""
+    """建立 path segment -> module name 的對應。
+
+    若有提供 `settings.module_exclusion_map` 且為字典，則優先使用。
+    """
     override = getattr(settings, "module_exclusion_map", None)
     if isinstance(override, dict) and override:
-        # Ensure keys/values are strings
+        # 確保鍵與值都是字串
         return {str(k): str(v) for k, v in override.items()}
     return {
         "econometrics": "openbb_econometrics",
@@ -54,15 +60,19 @@ def _get_module_exclusion_targets(settings: MCPSettings | None) -> dict[str, str
 
 
 def get_mcp_config(route: APIRoute, *, strict: bool = False) -> MCPConfigModel:
-    """
-    Read and validate per-route MCP config from openapi_extra.
+    """從 `openapi_extra` 讀取並驗證每個路由的 MCP 設定。
 
-    Args:
-        route: The APIRoute to process.
-        strict: If True, raise validation errors. If False, log warnings.
+    參數
+    ----------
+    route
+        要處理的 APIRoute。
+    strict
+        若為 True，直接拋出驗證錯誤；若為 False，則只記錄警告。
 
-    Returns:
-        A validated MCPConfigModel instance.
+    回傳
+    -------
+    MCPConfigModel
+        驗證後的 MCPConfigModel 實例。
     """
     extra = route.openapi_extra or {}
     raw_config = extra.get("mcp_config") or extra.get("x-mcp") or {}
@@ -81,28 +91,28 @@ def get_mcp_config(route: APIRoute, *, strict: bool = False) -> MCPConfigModel:
 
 
 def _get_prompt_configs(route: APIRoute) -> list[dict]:
-    """Extract prompt configurations from per-route MCP config.
+    """從每個路由的 MCP 設定中擷取 prompt 設定。
 
-    Supports a 'prompts' list of dicts.
-    Returns a list of prompt configurations.
+    支援由字典組成的 `prompts` 清單。
+    回傳 prompt 設定列表。
     """
     mcp_cfg = get_mcp_config(route)
-    # Convert PromptConfigModel to dict
+    # 將 PromptConfigModel 轉為字典
     return [p.model_dump() for p in mcp_cfg.prompts] if mcp_cfg.prompts else []
 
 
 def _create_prompt_definitions_for_route(
     route: APIRoute, settings: MCPSettings | None = None
 ) -> list[dict]:
-    """Create prompt definitions for a route if prompt configs exist."""
+    """若路由存在 prompt 設定，則建立對應的 prompt 定義。"""
     prompt_configs = _get_prompt_configs(route)
     definitions: list[dict] = []
 
     if not prompt_configs:
         return definitions
 
-    # Get argument definitions from the endpoint's signature
-    # This provides the ground truth for parameter names, types, and defaults
+    # 從 endpoint signature 取得參數定義
+    # 這是參數名稱、型別與預設值的準確來源
     try:
         sig = inspect.signature(route.endpoint)
         endpoint_args = {
@@ -119,10 +129,10 @@ def _create_prompt_definitions_for_route(
             if p.kind in (p.POSITIONAL_OR_KEYWORD, p.KEYWORD_ONLY)
         }
     except (ValueError, TypeError):
-        # Cannot inspect signature
+        # 無法檢查 signature
         endpoint_args = {}
 
-    # Common info for all prompts on this route
+    # 這個路由上所有 prompts 共用的資訊
     api_prefix = get_api_prefix(settings)
     tool_uri = route.path.replace(api_prefix, "").lstrip("/").replace("/", "_")
     path = route.path or ""
@@ -152,7 +162,7 @@ def _create_prompt_definitions_for_route(
         if not prompt_cfg or not prompt_cfg.get("content"):
             continue
 
-        # Generate prompt name
+        # 產生 prompt 名稱
         prompt_name = prompt_cfg.get("name")
         if not prompt_name:
             base_name = (
@@ -160,11 +170,11 @@ def _create_prompt_definitions_for_route(
                 if subcategory != "general"
                 else f"{category}_{tool}"
             )
-            # Add index for uniqueness if multiple unnamed prompts exist
+            # 若有多個未命名 prompt，加入索引以確保唯一性
             suffix = f"_{i}" if len(prompt_configs) > 1 else ""
             prompt_name = f"{base_name}_prompt{suffix}"
 
-        # Arguments for the prompt can be a combination of endpoint args and custom ones
+        # prompt 參數可能來自 endpoint 參數與自訂參數的組合
         final_args: dict = {}
         prompt_arg_defs = {arg["name"]: arg for arg in prompt_cfg.get("arguments", [])}
         content = (
@@ -172,21 +182,21 @@ def _create_prompt_definitions_for_route(
             + prompt_cfg.get("content", "")
         )
 
-        # All variables in the content string are considered arguments for the prompt
+        # content 字串中的所有變數都視為 prompt 參數
         prompt_vars = re.findall(r"\{(\w+)\}", content)
 
         for var in set(prompt_vars):
             if var in prompt_arg_defs:
-                # Use the definition from the prompt's own 'arguments' list
+                # 使用 prompt 自身 `arguments` 清單中的定義
                 final_args[var] = prompt_arg_defs[var]
             elif var in endpoint_args:
-                # Inherit the definition from the endpoint's signature
+                # 繼承 endpoint signature 中的定義
                 final_args[var] = endpoint_args[var]
             else:
-                # Argument is required by prompt but not defined anywhere
+                # 參數被 prompt 使用，但未在任何地方定義
                 final_args[var] = {"name": var, "type": "str"}
 
-        # Build prompt definition
+        # 建立 prompt 定義
         prompt_def = {
             "name": prompt_name,
             "description": prompt_cfg.get("description") or f"Prompt for {tool_uri}",
@@ -195,7 +205,7 @@ def _create_prompt_definitions_for_route(
             "tool": tool_uri,
         }
 
-        # Add tags, always including the route path
+        # 加上 tags，且一定包含路由路徑
         tags = list(prompt_cfg.get("tags", []))
         if route.path and route.path not in tags:
             tags.insert(0, route.path)
@@ -207,7 +217,7 @@ def _create_prompt_definitions_for_route(
 
 
 def _normalize_methods(methods: Sequence[str] | None) -> list[str]:
-    """Uppercase and filter out HEAD/OPTIONS. Return [] if None/empty."""
+    """將方法轉為大寫並過濾掉 HEAD/OPTIONS；若無內容則回傳 []。"""
     if not methods:
         return []
     out = []
@@ -222,9 +232,9 @@ def _normalize_methods(methods: Sequence[str] | None) -> list[str]:
 
 
 def _methods_from_config_or_route(cfg: MCPConfigModel, route: APIRoute) -> list:
-    """Pull methods from cfg.methods if present; otherwise from route.methods."""
+    """若 cfg.methods 存在則使用之，否則改用 route.methods。"""
     if cfg.methods:
-        # Handle the '*' wildcard for all methods
+        # 處理代表全部方法的 '*' 萬用字元
         if any(m.value == "*" for m in cfg.methods):
             return ["*"]
         methods = [m.value for m in cfg.methods]
@@ -247,11 +257,11 @@ def _resolve_mcp_type(value: str | None) -> MCPType | None:
 
 
 def _should_exclude_by_module_and_path(path: str, settings: MCPSettings | None) -> bool:
-    """Exclude only specific route trees if the corresponding module is loaded."""
+    """若對應模組已載入，則排除特定的路由樹。"""
     api_prefix = get_api_prefix(settings)
     targets = _get_module_exclusion_targets(settings)
 
-    # Normalize path to avoid double slashes annoyance
+    # 正規化路徑，避免雙斜線造成干擾
     if not path.startswith("/"):
         path = "/" + path
 
@@ -265,25 +275,25 @@ def _should_exclude_by_module_and_path(path: str, settings: MCPSettings | None) 
 def process_fastapi_routes_for_mcp(
     app: FastAPI, settings: MCPSettings | None = None
 ) -> ProcessedRouteData:
-    """Single-pass processing of FastAPI routes that:
+    """以單次走訪處理 FastAPI 路由，並完成以下工作：
 
-    1. Removes unwanted routes from the app in-place
-    2. Builds route maps for FastMCP
-    3. Creates route lookup dictionary for customization
+    1. 直接從 app 中移除不需要的 routes
+    2. 建立 FastMCP 所需的 route maps
+    3. 建立供客製化使用的 route lookup 字典
     """
     processed = ProcessedRouteData()
     routes_to_keep = []
 
     for route in app.router.routes:
         if not isinstance(route, APIRoute):
-            routes_to_keep.append(route)  # keep non-HTTP routes
+            routes_to_keep.append(route)  # 保留非 HTTP 路由
             continue
 
-        # Check if route should be excluded
+        # 檢查是否應排除此路由
         cfg = get_mcp_config(route)
         should_exclude = False
 
-        # Explicit per-route exposure control
+        # 明確的逐路由曝露控制
         if cfg.expose is False or _should_exclude_by_module_and_path(
             route.path or "", settings
         ):
@@ -293,16 +303,16 @@ def process_fastapi_routes_for_mcp(
             processed.removed_routes.append(route)
             continue
 
-        # Keep the route
+        # 保留此路由
         routes_to_keep.append(route)
 
-        # Build route lookup for customization (only for kept routes)
+        # 建立供客製化使用的 route lookup（只處理保留的路由）
         for method in route.methods or []:
             method_upper = str(method).upper()
             if method_upper not in {"HEAD", "OPTIONS"}:
                 processed.route_lookup[(route.path, method_upper)] = route
 
-        # Build route maps for FastMCP (only for routes with explicit mcp_type)
+        # 為 FastMCP 建立 route maps（只處理明確指定 mcp_type 的路由）
         mcp_type_str = cfg.mcp_type.value if cfg.mcp_type else None
         mcp_type = _resolve_mcp_type(mcp_type_str)
         if mcp_type is not None:
@@ -317,15 +327,15 @@ def process_fastapi_routes_for_mcp(
                     RouteMap(pattern=pattern, mcp_type=mcp_type)
                 )
 
-        # Collect prompt definitions (only for routes with prompt config)
+        # 收集 prompt 定義（只處理有 prompt 設定的路由）
         prompt_defs = _create_prompt_definitions_for_route(route, settings)
         if prompt_defs:
             processed.prompt_definitions.extend(prompt_defs)
 
-    # Update the app's routes in-place
+    # 原地更新 app 的 routes
     app.router.routes = routes_to_keep
 
-    # Add catch-all route map
+    # 加入 catch-all route map
     catchall_type = (
         _resolve_mcp_type(getattr(settings, "default_catchall_mcp_type", None))
         or MCPType.TOOL

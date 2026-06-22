@@ -1,6 +1,5 @@
 """Unit tests for MCPService."""
 
-# flake8: noqa=W0621
 # pylint: disable=W0621,W0212
 
 import json
@@ -109,6 +108,21 @@ def test_load_settings_from_env(service: MCPService):
         env_settings = service._load_settings_from_env()
         assert env_settings["name"] == "Env Test"
         assert env_settings["default_tool_categories"] == ["cat1", "cat2"]
+
+
+def test_load_settings_from_env_with_uvicorn_config(service: MCPService):
+    """Test loading dictionary settings from environment variables."""
+    env_dict = {
+        "OPENBB_MCP_NAME": "Env Test",
+        "OPENBB_MCP_UVICORN_CONFIG": "host:0.0.0.0,port:8001",
+    }
+    with patch.dict("os.environ", env_dict, clear=True):
+        env_settings = service._load_settings_from_env()
+        assert env_settings["name"] == "Env Test"
+        assert env_settings["uvicorn_config"] == {
+            "host": "0.0.0.0",  # noqa: S104
+            "port": "8001",
+        }
 
 
 def test_load_settings_from_env_empty(service: MCPService):

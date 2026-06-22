@@ -1,1 +1,1 @@
-"""MCP Service Module."""
+"""MCP 服務模組。"""

@@ -1,7 +1,7 @@
-"""Validation models for MCP configuration structures.
+"""MCP 組態結構的驗證模型。
 
-This module provides Pydantic models for validating JSON content in the
-openapi_extra.mcp_config field of FastAPI route definitions.
+此模組提供 Pydantic 模型，用來驗證 FastAPI 路由定義中
+`openapi_extra.mcp_config` 欄位的 JSON 內容。
 """
 
 import re
@@ -15,7 +15,7 @@ logger = get_logger(__name__)
 
 
 class MCPType(str, Enum):
-    """Valid MCP type values."""
+    """合法的 MCP 類型值。"""
 
     TOOL = "tool"
     RESOURCE = "resource"
@@ -23,7 +23,7 @@ class MCPType(str, Enum):
 
 
 class HTTPMethod(str, Enum):
-    """Valid HTTP methods for route configuration."""
+    """路由設定可用的合法 HTTP 方法。"""
 
     GET = "GET"
     POST = "POST"
@@ -36,7 +36,7 @@ class HTTPMethod(str, Enum):
 
 
 class ArgumentDefinitionModel(BaseModel):
-    """Model for validating prompt argument definitions."""
+    """用於驗證 prompt 參數定義的模型。"""
 
     name: str = Field(..., description="Name of the argument")
     type: str = Field(default="str", description="Type of the argument")
@@ -50,7 +50,7 @@ class ArgumentDefinitionModel(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str) -> str:
-        """Validate argument name is a valid identifier."""
+        """驗證參數名稱是否為合法識別字。"""
         if not v:
             raise ValueError("Argument name cannot be empty")
         if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", v):
@@ -60,7 +60,7 @@ class ArgumentDefinitionModel(BaseModel):
     @field_validator("type")
     @classmethod
     def validate_type(cls, v: str) -> str:
-        """Validate type is a recognized type string."""
+        """驗證型別是否為可辨識的型別字串。"""
         valid_types = {
             "str",
             "string",
@@ -82,7 +82,7 @@ class ArgumentDefinitionModel(BaseModel):
 
 
 class PromptConfigModel(BaseModel):
-    """Model for validating individual prompt configurations."""
+    """用於驗證單一 prompt 設定的模型。"""
 
     name: str | None = Field(
         default=None, description="Name of the prompt (auto-generated if not provided)"
@@ -101,11 +101,11 @@ class PromptConfigModel(BaseModel):
     @field_validator("content")
     @classmethod
     def validate_content(cls, v: str) -> str:
-        """Validate content is not empty and contains valid template syntax."""
+        """驗證內容不為空，且包含合法的樣板語法。"""
         if not v.strip():
             raise ValueError("Prompt content cannot be empty")
 
-        # Check for unmatched braces
+        # 檢查大括號是否成對
         open_braces = v.count("{")
         close_braces = v.count("}")
         if open_braces != close_braces:
@@ -118,11 +118,11 @@ class PromptConfigModel(BaseModel):
     @field_validator("name")
     @classmethod
     def validate_name(cls, v: str | None) -> str | None:
-        """Validate prompt name if provided."""
+        """若有提供 prompt 名稱，則驗證其合法性。"""
         if v is not None:
             if not v.strip():
                 raise ValueError("Prompt name cannot be empty string")
-            # Check for valid identifier-like name
+            # 檢查是否為類似識別字的合法名稱
             if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", v.strip()):
                 raise ValueError(f"Prompt name '{v}' should be a valid identifier")
         return v
@@ -130,7 +130,7 @@ class PromptConfigModel(BaseModel):
     @field_validator("tags")
     @classmethod
     def validate_tags(cls, v: list[str]) -> list[str]:
-        """Validate tags are non-empty strings."""
+        """驗證 tags 是否為非空字串。"""
         validated_tags = []
         for tag in v:
             if not isinstance(tag, str):
@@ -142,7 +142,7 @@ class PromptConfigModel(BaseModel):
 
 
 class MCPConfigModel(BaseModel):
-    """Model for validating the main MCP configuration structure."""
+    """用於驗證主要 MCP 組態結構的模型。"""
 
     expose: bool | None = Field(
         default=None, description="Whether to expose this route (False = exclude)."
@@ -163,22 +163,22 @@ class MCPConfigModel(BaseModel):
     @field_validator("methods", mode="before")
     @classmethod
     def validate_methods(cls, v: str | list[str] | None) -> list[HTTPMethod] | None:
-        """Normalize and validate HTTP methods."""
+        """正規化並驗證 HTTP 方法。"""
         if v is None:
             return None
 
-        # Handle single string
+        # 處理單一字串輸入
         if isinstance(v, str):
             v = [v]
 
         if not isinstance(v, list):
             raise ValueError("methods must be a list of strings")
 
-        # If '*' is present, it should be the only method
+        # 若包含 '*'，則它必須是唯一的方法
         if "*" in v and len(v) > 1:
             raise ValueError("Method '*' cannot be mixed with other HTTP methods.")
 
-        # Validate each method
+        # 驗證每個方法
         validated_methods = []
         for method in v:
             method_str = str(method).upper().strip() if method != "*" else "*"
@@ -190,7 +190,7 @@ class MCPConfigModel(BaseModel):
                     f"Invalid HTTP method '{method}'. Valid methods: {', '.join(valid_methods)}"
                 ) from exc
 
-        # Remove duplicates while preserving order
+        # 在保留順序的前提下移除重複值
         seen = set()
         unique_methods = []
         for method in validated_methods:
@@ -202,20 +202,20 @@ class MCPConfigModel(BaseModel):
 
     @model_validator(mode="after")
     def validate_config_consistency(self) -> "MCPConfigModel":
-        """Validate overall configuration consistency."""
-        # If expose is False, other configurations don't matter much, but we still validate them
+        """驗證整體組態的一致性。"""
+        # 若 expose 為 False，其他設定雖然影響較小，但仍要驗證
         if self.expose is False:
-            # Could add warnings here if other fields are set when expose=False
+            # 若 expose=False 時仍設定其他欄位，未來可在此加入警告
             pass
 
-        # Validate prompt names are unique within this config
+        # 驗證此設定中的 prompt 名稱是否唯一
         if self.prompts:
             prompt_names = []
             for prompt in self.prompts:
                 if prompt.name:
                     prompt_names.append(prompt.name)
 
-            # Check for duplicate names
+            # 檢查是否有重複名稱
             if len(prompt_names) != len(set(prompt_names)):
                 duplicates = [
                     name for name in prompt_names if prompt_names.count(name) > 1
@@ -225,25 +225,31 @@ class MCPConfigModel(BaseModel):
         return self
 
     def to_dict(self) -> dict[str, Any]:
-        """Convert to dictionary format compatible with existing code."""
+        """轉成與現有程式碼相容的字典格式。"""
         return self.model_dump(exclude_none=True)
 
 
 def validate_mcp_config(
     config_dict: dict[str, Any], *, strict: bool = True
 ) -> MCPConfigModel:
-    """
-    Validate an MCP configuration dictionary.
+    """驗證 MCP 組態字典。
 
-    Args:
-        config_dict: The configuration dictionary to validate
-        strict: If True, raise validation errors. If False, log warnings and return best-effort model.
+    參數
+    ----------
+    config_dict
+        要驗證的組態字典。
+    strict
+        若為 True，則直接拋出驗證錯誤；若為 False，則記錄警告並回傳盡力而為的模型。
 
-    Returns:
-        Validated MCPConfigModel instance
+    回傳
+    -------
+    MCPConfigModel
+        驗證後的 MCPConfigModel 實例。
 
-    Raises:
-        ValidationError: If validation fails and strict=True
+    拋出
+    ----
+    ValidationError
+        當驗證失敗且 strict=True 時拋出。
     """
     try:
         return MCPConfigModel.model_validate(config_dict)
@@ -255,14 +261,17 @@ def validate_mcp_config(
 
 
 def is_valid_mcp_config(config_dict: dict[str, Any]) -> bool | Exception:
-    """
-    Check if a configuration dictionary is valid without raising exceptions.
+    """檢查組態字典是否合法，且不拋出例外。
 
-    Args:
-        config_dict: The configuration dictionary to check
+    參數
+    ----------
+    config_dict
+        要檢查的組態字典。
 
-    Returns:
-        True if valid, False otherwise
+    回傳
+    -------
+    bool | Exception
+        合法時回傳 True；否則回傳對應的例外物件。
     """
     try:
         validate_mcp_config(config_dict, strict=True)

@@ -1,1 +1,1 @@
-"""Utility functions for MCP server."""
+"""MCP 伺服器工具函式。"""

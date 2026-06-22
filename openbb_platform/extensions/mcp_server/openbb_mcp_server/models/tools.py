@@ -1,10 +1,10 @@
-"""Tool models for MCP server."""
+"""MCP 伺服器的工具模型。"""
 
 from pydantic import BaseModel
 
 
 class ToolInfo(BaseModel):
-    """Information about a single tool."""
+    """單一工具的資訊。"""
 
     name: str
     active: bool
@@ -12,14 +12,14 @@ class ToolInfo(BaseModel):
 
 
 class SubcategoryInfo(BaseModel):
-    """Metadata for a tool subcategory."""
+    """工具子分類的中繼資料。"""
 
     name: str
     tool_count: int
 
 
 class CategoryInfo(BaseModel):
-    """Metadata for a category of tools."""
+    """工具分類的中繼資料。"""
 
     name: str
     subcategories: list[SubcategoryInfo]

@@ -1,0 +1,22 @@
+services:
+  openbb-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        OPENBB_VERSION: 4.7.2
+    image: openbb-mcp-stocks:local
+    container_name: openbb-mcp-stocks
+    ports:
+      - "8001:8001"
+    environment:
+      OPENBB_MCP_NAME: OpenBB MCP Stocks
+      OPENBB_MCP_ALLOWED_TOOL_CATEGORIES: equity,etf,index,news
+      OPENBB_MCP_DEFAULT_TOOL_CATEGORIES: equity,etf,index,news
+      OPENBB_MCP_ENABLE_TOOL_DISCOVERY: "false"
+      OPENBB_MCP_UVICORN_CONFIG: host:0.0.0.0,port:8001
+    volumes:
+      - openbb_mcp_data:/home/openbb/.openbb_platform
+
+volumes:
+  openbb_mcp_data:

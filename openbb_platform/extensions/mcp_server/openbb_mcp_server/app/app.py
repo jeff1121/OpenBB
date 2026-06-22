@@ -1,4 +1,4 @@
-"""OpenBB MCP Server."""
+"""OpenBB MCP Server。"""
 
 # pylint: disable=C0302, R0912, W0212
 
@@ -75,7 +75,7 @@ _VENDOR_SKILLS_PROVIDERS = {
 
 
 def _extract_brief_description(full_description: str) -> str:
-    """Extract only the brief description before the detailed API documentation."""
+    """擷取詳細 API 文件之前的簡短描述。"""
     if not full_description:
         return "No description available"
     brief, *_ = re.split(
@@ -85,7 +85,7 @@ def _extract_brief_description(full_description: str) -> str:
 
 
 def _get_mcp_config_from_route(fa_route: APIRoute | None) -> dict:
-    """Extract the mcp_config dictionary from a FastAPI route's openapi_extra."""
+    """從 FastAPI 路由的 `openapi_extra` 擷取 `mcp_config` 字典。"""
     if fa_route is None:
         return {}
     extra = fa_route.openapi_extra or {}
@@ -96,9 +96,9 @@ def _get_mcp_config_from_route(fa_route: APIRoute | None) -> dict:
 
 
 def _strip_api_prefix(path: str, api_prefix: str) -> str:
-    """Strip the exact api_prefix (from SystemService) from an absolute path.
+    """從絕對路徑中移除精確的 `api_prefix`（來自 SystemService）。
 
-    Returns the remainder without a leading slash.
+    回傳不含前導斜線的剩餘路徑。
     """
     if not path:
         return ""
@@ -111,7 +111,10 @@ def _strip_api_prefix(path: str, api_prefix: str) -> str:
 
 
 def _read_system_prompt_file(file_path: str) -> str | None:
-    """Read system prompt content from a text file. Returns None if file doesn't exist or can't be read."""
+    """從文字檔讀取 system prompt 內容。
+
+    若檔案不存在或無法讀取，則回傳 None。
+    """
     try:
         prompt_path = Path(file_path)
         if prompt_path.exists() and prompt_path.is_file():
@@ -122,7 +125,7 @@ def _read_system_prompt_file(file_path: str) -> str | None:
 
 
 def _build_runtime_middleware() -> list:
-    """Build middleware objects compatible with FastMCP.run(middleware=...)."""
+    """建立與 `FastMCP.run(middleware=...)` 相容的 middleware 物件。"""
     cors = SystemService().system_settings.api_settings.cors
 
     return [
@@ -138,14 +141,14 @@ def _build_runtime_middleware() -> list:
 
 
 def _setup_file_system_prompt(mcp: FastMCP, settings: MCPSettings) -> None:
-    """Set up system prompt from a file and expose it as a prompt and resource."""
+    """從檔案載入 system prompt，並以 prompt 與 resource 形式曝露。"""
     system_prompt_content = _read_system_prompt_file(settings.system_prompt_file or "")
 
     if not system_prompt_content:
         return
 
     def system_prompt_func() -> str:
-        """Return the configured system prompt."""
+        """回傳設定好的 system prompt。"""
         return system_prompt_content
 
     mcp.add_prompt(
@@ -166,12 +169,12 @@ def _setup_file_system_prompt(mcp: FastMCP, settings: MCPSettings) -> None:
 
     @mcp.resource("resource://system_prompt")
     def system_prompt_resource() -> str:
-        """Return the system prompt resource content."""
+        """回傳 system prompt resource 內容。"""
         return system_prompt_func()
 
 
 def _add_prompts_from_json(mcp: FastMCP, settings: MCPSettings) -> None:
-    """Load prompts from server_prompts_file and register them with mcp."""
+    """從 `server_prompts_file` 載入 prompts，並註冊到 mcp。"""
     if not settings.server_prompts_file:
         return
 
@@ -261,7 +264,7 @@ def _add_prompts_from_json(mcp: FastMCP, settings: MCPSettings) -> None:
 
 
 def _add_inline_prompts(mcp: FastMCP, prompt_definitions: list) -> None:
-    """Register inline prompts from route configurations with mcp."""
+    """將路由設定中的 inline prompts 註冊到 mcp。"""
     inline_prompts_added: list = []
     for prompt_def in prompt_definitions:
         try:
@@ -314,7 +317,7 @@ def _add_inline_prompts(mcp: FastMCP, prompt_definitions: list) -> None:
 
 
 def _add_skills_default_prompt(mcp: FastMCP) -> None:
-    """Register a default skills-awareness system prompt when no file prompt is configured."""
+    """在未設定檔案型 prompt 時，註冊預設的 skills-aware system prompt。"""
     _default_system_content = (
         "This server includes bundled skill guides that teach you how to "
         "use advanced OpenBB Platform capabilities. "
@@ -322,7 +325,7 @@ def _add_skills_default_prompt(mcp: FastMCP) -> None:
     )
 
     def _default_system_prompt() -> str:
-        """Return default system prompt content."""
+        """回傳預設的 system prompt 內容。"""
         return _default_system_content
 
     mcp.add_prompt(
@@ -349,25 +352,25 @@ def create_mcp_server(
     httpx_kwargs: dict | None = None,
     auth: Any | None = None,
 ) -> FastMCP:
-    """Create and configure the FastMCP server from a FastAPI app instance.
+    """根據 FastAPI app 實例建立並設定 FastMCP 伺服器。
 
-    Parameters
+    參數
     ----------
-    settings: MCPSettings
-        The MCPSettings instance containing configuration options for the server.
-    fastapi_app: FastAPI
-        The FastAPI app instance to be used for the server.
-    httpx_kwargs: dict | None
-        Optional keyword arguments to pass to the httpx client.
-    auth: Any | None
-        The authentication provider to use for the server.
-        Should be a valid FastMCP.server.auth.AuthProvider instance,
-        or an object accepted by the `auth` parameter of FastMCP initialization.
+    settings
+        包含伺服器設定選項的 MCPSettings 實例。
+    fastapi_app
+        要用來建立伺服器的 FastAPI app 實例。
+    httpx_kwargs
+        傳給 httpx client 的可選關鍵字參數。
+    auth
+        伺服器要使用的驗證提供者。
+        應為有效的 `FastMCP.server.auth.AuthProvider` 實例，
+        或任何 FastMCP `auth` 參數可接受的物件。
 
-    Returns
+    回傳
     -------
     FastMCP
-        The configured FastMCP server instance.
+        設定完成的 FastMCP 伺服器實例。
     """
     auth_provider = None
     if auth and isinstance(auth, list | tuple) and len(auth) == 2 and all(auth):
@@ -379,7 +382,7 @@ def create_mcp_server(
     category_index = CategoryIndex()
     _enabled_tools: set[str] = set()
 
-    # Single-pass processing: filter routes, build route maps, and create lookup dictionary
+    # 單次處理：過濾 routes、建立 route maps，並建立 lookup 字典
     processed_data = process_fastapi_routes_for_mcp(fastapi_app, settings)
 
     route_lookup = processed_data.route_lookup
@@ -405,8 +408,8 @@ def create_mcp_server(
         route: HTTPRoute,
         component: OpenAPITool | OpenAPIResource | OpenAPIResourceTemplate,
     ) -> None:
-        """Apply naming, tags, enable/disable, and resource mime type using per-route config."""
-        # Map back to FastAPI route to read openapi_extra
+        """依每個路由的設定套用命名、tags、啟用/停用與 resource MIME type。"""
+        # 回查對應的 FastAPI route，以讀取 openapi_extra
         fa_route = route_lookup.get((route.path, route.method.upper()))
         mcp_cfg = _get_mcp_config_from_route(fa_route)
 
@@ -420,7 +423,7 @@ def create_mcp_server(
             )
             mcp_cfg = {}
 
-        # Use the exact API prefix to determine category/subcategory/tool
+        # 使用精確的 API prefix 判定 category / subcategory / tool
         local_path = _strip_api_prefix(route.path, api_prefix)
         segments = [seg for seg in local_path.split("/") if seg and "{" not in seg]
 
@@ -438,7 +441,7 @@ def create_mcp_server(
         else:
             category, subcategory, tool = "general", "general", "root"
 
-        # Name override
+        # 名稱覆寫
         if name := mcp_cfg.get("name"):
             component.name = name
         else:
@@ -448,13 +451,13 @@ def create_mcp_server(
                 else f"{category}_{tool}"
             )
 
-        # Tags
+        # 標籤
         component.tags.add(category)
         extra_tags = mcp_cfg.get("tags") or []
         for t in extra_tags:
             component.tags.add(str(t))
 
-        # Compress schemas (only for OpenAPITool which has these attributes)
+        # 壓縮 schemas（僅適用於具有這些屬性的 OpenAPITool）
         if isinstance(component, OpenAPITool):
             if component.parameters:
                 component.parameters = compress_schema(component.parameters)
@@ -463,7 +466,7 @@ def create_mcp_server(
                 if output_schema is not None:
                     component.output_schema = compress_schema(output_schema)
 
-        # Description trimming
+        # 修剪描述內容
         describe_override = mcp_cfg.get("describe_responses")
         if describe_override is False or (
             describe_override is None and not settings.describe_responses
@@ -472,7 +475,7 @@ def create_mcp_server(
                 component.description or ""
             )
 
-        # Add prompt metadata to the tool description
+        # 將 prompt 中繼資料附加到工具描述中
         if isinstance(component, OpenAPITool):
             prompts = tool_prompts_map.get(component.name)
             if prompts:
@@ -487,7 +490,7 @@ def create_mcp_server(
                     component.description or ""
                 ) + prompt_metadata_str
 
-        # Enable/disable: per-route override first, then category defaults
+        # 啟用/停用：先看逐路由覆寫，再看分類預設值
         enable_override = mcp_cfg.get("enable")
         if isinstance(enable_override, bool):
             should_enable = enable_override
@@ -502,13 +505,13 @@ def create_mcp_server(
         if should_enable and isinstance(component, OpenAPITool):
             _enabled_tools.add(component.name)
 
-        # Resource-specific mime type
+        # Resource 專用的 MIME type
         if isinstance(component, OpenAPIResource):
             mime_type = mcp_cfg.get("mime_type")
             if isinstance(mime_type, str) and mime_type:
                 component.mime_type = mime_type
 
-        # Register tool in the category index for discovery browsing
+        # 將工具註冊進分類索引，供探索瀏覽使用
         if isinstance(component, OpenAPITool):
             category_index.register(
                 category=category,
@@ -517,15 +520,15 @@ def create_mcp_server(
                 description=component.description or "",
             )
 
-    # Extract httpx_client_kwargs from settings/kwargs if available
+    # 若有提供，從 settings/kwargs 擷取 httpx_client_kwargs
     httpx_client_kwargs = httpx_kwargs or settings.get_httpx_kwargs()
 
-    # Get only FastMCP constructor parameters (excludes uvicorn_config, httpx_client_kwargs)
+    # 僅取得 FastMCP 建構子參數（不含 uvicorn_config、httpx_client_kwargs）
     fastmcp_kwargs = settings.get_fastmcp_kwargs()
 
-    # Create MCP server from the processed FastAPI app.
+    # 根據處理後的 FastAPI app 建立 MCP 伺服器。
     mcp = FastMCP.from_fastapi(
-        app=fastapi_app,  # app has been modified in-place
+        app=fastapi_app,  # app 已原地修改
         mcp_component_fn=customize_components,
         route_maps=processed_data.route_maps,
         httpx_client_kwargs=httpx_client_kwargs,
@@ -533,32 +536,32 @@ def create_mcp_server(
         **fastmcp_kwargs,
     )
 
-    # Disable ALL non-admin tools first, then selectively re-enable.
+    # 先停用所有非管理工具，再有選擇地重新啟用。
     all_registered = category_index.all_tool_names()
     if all_registered:
         mcp.disable(names=all_registered)
 
     if settings.enable_tool_discovery:
-        # Discovery mode: everything stays disabled.
-        # Agents progressively activate what they need per-session
-        # via activate_tools / activate_category.
+        # 探索模式：所有工具預設保持停用。
+        # Agent 會在各自 session 中透過
+        # activate_tools / activate_category 逐步啟用需要的工具。
         pass
     elif _enabled_tools:
-        # Fixed-toolset mode: re-enable tools that matched
-        # per-route overrides or default_tool_categories.
+        # 固定工具集模式：重新啟用符合
+        # 逐路由覆寫或 default_tool_categories 的工具。
         mcp.enable(names=_enabled_tools)
 
-    # Add system prompt if configured
+    # 若有設定 system prompt，則加入
     if settings.system_prompt_file:
         _setup_file_system_prompt(mcp, settings)
 
-    # Load the prompts json file, if added to the settings configuration.
+    # 若設定中有 prompts JSON 檔，則載入之
     _add_prompts_from_json(mcp, settings)
 
-    # Add inline prompts from route configurations
+    # 加入路由設定中的 inline prompts
     _add_inline_prompts(mcp, processed_data.prompt_definitions)
 
-    # Load bundled skills via SkillsDirectoryProvider
+    # 透過 SkillsDirectoryProvider 載入內建 skills
     _bundled_skills_loaded = False
     if settings.default_skills_dir:
         skills_dir = Path(settings.default_skills_dir)
@@ -572,7 +575,7 @@ def create_mcp_server(
             _bundled_skills_loaded = True
             logger.info("Loaded bundled skills from '%s'", skills_dir)
 
-    # Load user-configured vendor skill providers
+    # 載入使用者設定的 vendor skills providers
     if settings.skills_providers:
         for provider_name in settings.skills_providers:
             key = provider_name.lower().strip()
@@ -587,18 +590,18 @@ def create_mcp_server(
                     ", ".join(_VENDOR_SKILLS_PROVIDERS),
                 )
 
-    # If any skills were loaded and no custom system prompt is configured,
-    # add a brief default system prompt nudging agents to discover them.
+    # 若已載入任何 skills，且未設定自訂 system prompt，
+    # 則加入簡短的預設 system prompt，引導 agent 探索這些 skills。
     _skills_loaded = _bundled_skills_loaded or bool(settings.skills_providers)
     if _skills_loaded and not settings.system_prompt_file:
         _add_skills_default_prompt(mcp)
 
-    # Admin/discovery tools if enabled
+    # 若啟用探索功能，則加入管理/探索工具
     if settings.enable_tool_discovery:
 
         @mcp.tool(tags={"admin"})
         def available_categories() -> list[CategoryInfo]:
-            """List available tool categories and subcategories with tool counts."""
+            """列出可用的工具分類與子分類，以及各自的工具數量。"""
             categories = category_index.get_categories()
             return [
                 CategoryInfo(
@@ -627,7 +630,7 @@ def create_mcp_server(
                 ),
             ] = None,
         ) -> list[ToolInfo]:
-            """List tools in a specific category and subcategory."""
+            """列出特定分類與子分類中的工具。"""
             cat_data = category_index.get_subcategories(category)
 
             if cat_data is None:
@@ -647,12 +650,12 @@ def create_mcp_server(
             else:
                 names = category_index.get_category_names(category)
 
-            # Resolve active state from FastMCP's live tool list
+            # 從 FastMCP 目前的工具清單解析啟用狀態
             active_tools = await mcp.list_tools()
             active_names = {t.name for t in active_tools}
 
-            # Build descriptions — use live tool object when available,
-            # fall back to cached short description from the index.
+            # 建立描述：若可取得即時工具物件則優先使用，
+            # 否則退回索引中的快取短描述。
             tool_map = {t.name: t for t in active_tools}
             results: list[ToolInfo] = []
             for name in sorted(names):
@@ -672,7 +675,7 @@ def create_mcp_server(
             ],
             ctx: Context,
         ) -> str:
-            """Activate one or more tools for this session."""
+            """為目前 session 啟用一個或多個工具。"""
             valid = [n for n in tool_names if category_index.has_tool(n)]
             invalid = [n for n in tool_names if not category_index.has_tool(n)]
             if valid:
@@ -691,7 +694,7 @@ def create_mcp_server(
             ],
             ctx: Context,
         ) -> str:
-            """Deactivate one or more tools for this session."""
+            """為目前 session 停用一個或多個工具。"""
             valid = [n for n in tool_names if category_index.has_tool(n)]
             invalid = [n for n in tool_names if not category_index.has_tool(n)]
             if valid:
@@ -714,7 +717,7 @@ def create_mcp_server(
                 Field(description="Optional subcategory to narrow activation"),
             ] = None,
         ) -> str:
-            """Activate all tools in a category (or subcategory) for this session."""
+            """為目前 session 啟用某個分類（或子分類）的所有工具。"""
             if subcategory:
                 names = category_index.get_subcategory_names(category, subcategory)
             else:
@@ -733,8 +736,8 @@ def create_mcp_server(
                 f": {', '.join(sorted(names))}"
             )
 
-    # Expose prompts and resources as tools via transforms so that
-    # tool-only clients can list/render prompts and list/read resources.
+    # 透過 transforms 將 prompts 與 resources 轉為工具，
+    # 讓只有工具介面的 client 也能列出/渲染 prompts 與列出/讀取 resources。
     mcp.add_transform(PromptsAsTools(mcp))
     mcp.add_transform(ResourcesAsTools(mcp))
 
@@ -773,18 +776,18 @@ def create_mcp_server(
             ),
         ] = "bundled",
     ) -> dict:
-        """Install a skill (SKILL.md + supporting files) into a SkillsDirectoryProvider.
+        """將 skill（SKILL.md 與其支援檔案）安裝到 SkillsDirectoryProvider。
 
-        Creates the skill directory if needed, writes all files,
-        and registers the new skill with the target provider so it becomes
-        immediately available via list_resources / read_resource.
+        若需要會建立 skill 目錄、寫入所有檔案，
+        並將新 skill 註冊到目標 provider，
+        使其可立即透過 `list_resources` / `read_resource` 使用。
         """
         if "SKILL.md" not in files:
             raise ValueError(
                 "The 'files' dict must include a 'SKILL.md' entry as the main skill file."
             )
 
-        # Find the target SkillsDirectoryProvider
+        # 找出目標 SkillsDirectoryProvider
         target_key = target.lower().strip()
         target_provider: SkillsDirectoryProvider | None = None
 
@@ -820,21 +823,21 @@ def create_mcp_server(
                 f"Target provider '{target}' has no configured root directories."
             )
 
-        # Use the first root directory for writing
+        # 使用第一個 root 目錄進行寫入
         root_dir = target_provider._roots[0]  # noqa: SLF001
         skill_dir = root_dir / skill_name
 
-        # Create the directory and write all files
+        # 建立目錄並寫入所有檔案
         skill_dir.mkdir(parents=True, exist_ok=True)
         written_files: list[str] = []
         for filename, content in files.items():
             file_path = skill_dir / filename
-            # Create subdirectories if the filename contains path separators
+            # 若檔名包含路徑分隔符，則建立子目錄
             file_path.parent.mkdir(parents=True, exist_ok=True)
             file_path.write_text(content, encoding="utf-8")
             written_files.append(filename)
 
-        # Register the new skill with the provider
+        # 將新 skill 註冊到 provider
         already_loaded = {
             p._skill_path.name  # noqa: SLF001
             for p in target_provider.providers
@@ -846,7 +849,7 @@ def create_mcp_server(
             target_provider.providers.append(new_skill_provider)
             action = "Installed"
         else:
-            # Skill already exists — re-discover to pick up changed content
+            # Skill 已存在：重新探索以載入更新後的內容
             target_provider._discover_skills()  # noqa: SLF001
             action = "Updated"
 
@@ -872,30 +875,30 @@ def create_mcp_server(
 
 
 class SSEShutdownWrapper:
-    """ASGI middleware to handle SSE connection shutdown gracefully."""
+    """在 SSE 連線關閉時優雅處理的 ASGI middleware。"""
 
     def __init__(self, asgi_app: ASGIApp):
-        """Initialize the SSEShutdownWrapper."""
+        """初始化 SSEShutdownWrapper。"""
         self.asgi_app = asgi_app
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
-        """Handle incoming ASGI requests."""
+        """處理傳入的 ASGI 請求。"""
         if scope["type"] != "http":
             await self.asgi_app(scope, receive, send)
             return
 
-        # Check if this is an SSE endpoint
+        # 檢查這是否為 SSE 端點
         path = scope.get("path", "")
 
         if not path.endswith("/sse/"):
             await self.asgi_app(scope, receive, send)
             return
 
-        # Wrap send to handle shutdown gracefully
+        # 包裝 send，以便在關閉時優雅處理
         response_started = False
 
         async def safe_send(message):
-            """Wrap the send function to handle shutdown gracefully."""
+            """包裝 send 函式，以便在關閉時優雅處理。"""
             nonlocal response_started
 
             try:
@@ -905,13 +908,13 @@ class SSEShutdownWrapper:
                 elif message["type"] == "http.response.body":
                     await send(message)
             except (ConnectionResetError, ConnectionAbortedError):
-                # Client disconnected, ignore
+                # client 已中斷連線，直接忽略
                 pass
             except RuntimeError as e:
                 if "Expected ASGI message" in str(e):
-                    # ASGI protocol violation during shutdown, handle gracefully
+                    # 關閉期間發生 ASGI 協定違規，改以優雅方式處理
                     if not response_started:
-                        # Send a proper response start if we haven't yet
+                        # 若尚未送出 response start，先補送正確的起始回應
                         await send(
                             {
                                 "type": "http.response.start",
@@ -933,11 +936,11 @@ class SSEShutdownWrapper:
 
 
 async def stdio_main(mcp_server):
-    """Run the MCP server in STDIO mode with signal handling."""
+    """以 STDIO 模式執行 MCP 伺服器，並處理系統訊號。"""
     loop = asyncio.get_running_loop()
 
     def signal_handler():
-        """Signal handler to exit the process immediately."""
+        """收到訊號時立即結束程序。"""
         logger.info("Shutdown signal received. Terminating process.")
         os._exit(0)  # pylint: disable=protected-access
 
@@ -950,12 +953,12 @@ async def stdio_main(mcp_server):
 
 
 def main():
-    """Start the OpenBB MCP server with enhanced FastAPI app import capabilities."""
+    """以擴充的 FastAPI app 匯入能力啟動 OpenBB MCP 伺服器。"""
     args = parse_args()
     mcp_service = MCPService()
-    # Collect all command-line overrides from parsed args
+    # 收集已解析參數中的所有命令列覆寫值
     cli_overrides = args.uvicorn_config.copy()
-    # Add MCP-specific CLI arguments if they exist
+    # 若存在 MCP 專用 CLI 參數，則一併加入
     if hasattr(args, "allowed_categories") and args.allowed_categories:
         cli_overrides["allowed_categories"] = args.allowed_categories
 
@@ -971,18 +974,18 @@ def main():
     if hasattr(args, "server_prompts") and args.server_prompts:
         cli_overrides["server_prompts"] = args.server_prompts
 
-    # Load settings with proper priority order (CLI > env > config file > defaults)
+    # 依正確優先順序載入設定（CLI > env > config file > defaults）
     settings = mcp_service.load_with_overrides(**cli_overrides)
 
     try:
-        # Use imported app if provided, otherwise default OpenBB app
+        # 若有匯入自訂 app 就使用它，否則使用預設 OpenBB app
         target_app = args.imported_app if args.imported_app else app
 
-        # Extract runtime configuration from settings
+        # 從設定中擷取執行期組態
         http_run_kwargs = settings.get_http_run_kwargs()
         httpx_kwargs = settings.get_httpx_kwargs()
 
-        # Create MCP server with comprehensive configuration
+        # 以完整組態建立 MCP 伺服器
         mcp_server = create_mcp_server(
             settings, target_app, httpx_kwargs, auth=settings.server_auth
         )
@@ -992,17 +995,17 @@ def main():
         else:
             cors_middleware = _build_runtime_middleware()
 
-            # Start building arguments mcp.run
+            # 開始組裝 `mcp.run` 的參數
             run_kwargs = {
                 "transport": args.transport,
                 "middleware": cors_middleware,
             }
 
-            # Extract uvicorn settings
+            # 擷取 uvicorn 設定
             if http_run_kwargs.get("uvicorn_config"):
                 uvicorn_config = http_run_kwargs["uvicorn_config"].copy()
 
-                # Pop host and port to pass them as top-level args
+                # 將 host 與 port 提升為頂層參數
                 if "host" in uvicorn_config:
                     run_kwargs["host"] = uvicorn_config.pop("host")
 
@@ -1010,11 +1013,11 @@ def main():
                     port = uvicorn_config.pop("port")
                     run_kwargs["port"] = int(port) if isinstance(port, str) else port
 
-                # Pass the rest of the config in the nested dict.
+                # 其餘設定保留在巢狀字典中傳入
                 if uvicorn_config:
                     run_kwargs["uvicorn_config"] = uvicorn_config
 
-            # Add SSE shutdown handling to middleware stack
+            # 將 SSE 關閉處理加入 middleware stack
             cors_middleware.append(Middleware(SSEShutdownWrapper))
             run_kwargs["middleware"] = cors_middleware
 
